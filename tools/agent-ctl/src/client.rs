@@ -173,6 +173,11 @@ static AGENT_CMDS: &'static [AgentCmd] = &[
       fp: agent_cmd_pull_image,
     },
     AgentCmd {
+      name: "VerifyImage",
+      st: ServiceType::Agent,
+      fp: agent_cmd_verify_image,
+    },
+    AgentCmd {
         name: "ReadStderr",
         st: ServiceType::Agent,
         fp: agent_cmd_container_read_stderr,
@@ -1031,8 +1036,41 @@ fn agent_cmd_pull_image(
     let ctx = clone_context(ctx);
 
     let image = utils::get_option("image", options, args);
+    let api_key = utils::get_option("api_key", options, args);
 
     req.set_container_id(image);
+    req.set_api_key(api_key);
+
+    debug!(sl!(), "sending request"; "request" => format!("{:?}", req));
+
+    let reply = client
+        .pull_image(ctx, &req)
+        .map_err(|e| anyhow!("{:?}", e).context(ERR_API_FAILED))?;
+
+    info!(sl!(), "response received";
+        "response" => format!("{:?}", reply));
+
+    Ok(())
+}
+
+fn agent_cmd_PullImage_image(
+    ctr: &Context,
+    client: &AgentServiceClient,
+    _health: &HealthClient,
+    options: &mut Options,
+    args: &str,
+) -> Result<()> {
+    let mut req = PauseContainerRequest::default();
+
+    let ctx = clone_context(ctx);
+
+    let image = utils::get_option("image", options, args);
+    let api_key = utils::get_option("api_key", options, args);
+    let gpg_key = utils::get_option("gpg_key", options, args)
+
+    req.set_container_id(image);
+    req.set_api_key(api_key);
+    req.get_gpg_key(gpg_key);
 
     debug!(sl!(), "sending request"; "request" => format!("{:?}", req));
 

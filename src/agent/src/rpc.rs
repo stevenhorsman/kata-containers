@@ -657,7 +657,7 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
             .map_err(|e| ttrpc_error(ttrpc::Code::INTERNAL, e.to_string()))
     }
 
-        async fn pull_image(
+    async fn pull_image(
         &self,
         _ctx: &TtrpcContext,
         req: protocols::agent::PauseContainerRequest,
@@ -665,20 +665,50 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         info!(sl!(), "receive pull_image {:?}", req);
 
         let image = req.get_container_id();
+        let api_key = req.get_api_key();
 
         let source: &str = "docker://";
         let target: &str = "dir:/tmp";
         let source_image = format!("{}{}",source,image);
+        let src_creds = format!("{}{}", "iamapikey:",api_key);
 
         let status = Command::new(SKOPEO_PATH)
             .arg("copy")
             .arg(source_image)
             .arg(target)
+            .arg("--src-creds")
+            .arg(src_creds)
             .status()
-            .expect("Danger Will Robinson!");
+            .expect("Failed to pull image");
 
         info!(sl!(), "process finished with: {}", status);
 
+        Ok(Empty::new())
+    }
+
+    async fn verify_image(
+        &self,
+        _ctx: &TtrpcContext,
+        req: protocols::agent::PauseContainerRequest,
+    ) -> ttrpc::Result<protocols::empty::Empty> {
+        info!(sl!(), "receive verify_image (:?)", req);
+
+        let image = req.get_container_id();
+        let gpg_key = req.get_gpg_key();
+        let signature_file = format!("{}{}{}","/tmp/",image,"signature-1");
+        let manifest_file = format!("{}{}{}","/tmp/",image,"/manifest.json");
+
+        let status = Command::new(SKOPEO_PATH)
+            .arg("standalone-verify")
+            .arg(manifest_file)
+            .arg(image)
+            .arg(gpg_key)
+            .arg(signature_file)
+            .status()
+            .expect("Failed to verify signature");
+
+        info!(sl!(), "process finished with: {}", status);
+        
         Ok(Empty::new())
     }
 
