@@ -1075,7 +1075,7 @@ fn agent_cmd_verify_image(
     debug!(sl!(), "sending request"; "request" => format!("{:?}", req));
 
     let reply = client
-        .pull_image(ctx, &req)
+        .verify_image(ctx, &req)
         .map_err(|e| anyhow!("{:?}", e).context(ERR_API_FAILED))?;
 
     info!(sl!(), "response received";
