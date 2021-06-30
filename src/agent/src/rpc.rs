@@ -661,7 +661,7 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         &self,
         _ctx: &TtrpcContext,
         req: protocols::agent::PauseContainerRequest,
-    ) -> Result<String> {
+    ) -> ttrpc::Result<protocols::empty::Empty> {
         info!(sl!(), "receive pull_image {:?}", req);
 
         let image = req.get_container_id();
@@ -690,7 +690,7 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         &self,
         _ctx: &TtrpcContext,
         req: protocols::agent::PauseContainerRequest,
-    ) -> Result<String> {
+    ) -> ttrpc::Result<protocols::empty::Empty> {
         info!(sl!(), "receive verify_image {:?}", req);
 
         let image = req.get_container_id();

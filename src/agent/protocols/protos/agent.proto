@@ -68,12 +68,10 @@ service AgentService {
 	rpc GetOOMEvent(GetOOMEventRequest) returns (OOMEvent);
 	rpc AddSwap(AddSwapRequest) returns (google.protobuf.Empty);
 	// Testing Skopeo for image pulling
-	// rpc PullImage(PauseContainerRequest) returns (google.protobuf.Empty);
-	rpc PullImage(PauseContainerRequest) returns(Output);
+	rpc PullImage(PauseContainerRequest) returns (google.protobuf.Empty);
 
 	// Testing Skopeo for image validation
-	// rpc VerifyImage(PauseContainerRequest) returns (google.protobuf.Empty);
-	rpc VerifyImage(PauseContainerRequest) returns(Output);
+	rpc VerifyImage(PauseContainerRequest) returns (google.protobuf.Empty);
 }
 
 message CreateContainerRequest {
