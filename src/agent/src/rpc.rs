@@ -683,7 +683,7 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
 
         info!(sl!(), "process finished with: {}", status);
 
-        Ok(Empty::new())
+        Ok(status)
     }
 
     async fn verify_image(
@@ -691,7 +691,7 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         _ctx: &TtrpcContext,
         req: protocols::agent::PauseContainerRequest,
     ) -> ttrpc::Result<protocols::empty::Empty> {
-        info!(sl!(), "receive verify_image (:?)", req);
+        info!(sl!(), "receive verify_image {:?}", req);
 
         let image = req.get_container_id();
         let gpg_key = req.get_gpg_key();
@@ -708,8 +708,8 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
             .expect("Failed to verify signature");
 
         info!(sl!(), "process finished with: {}", status);
-        
-        Ok(Empty::new())
+
+        Ok(status)
     }
 
     async fn pause_container(

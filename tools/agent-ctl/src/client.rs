@@ -1053,8 +1053,8 @@ fn agent_cmd_pull_image(
     Ok(())
 }
 
-fn agent_cmd_PullImage_image(
-    ctr: &Context,
+fn agent_cmd_verify_image(
+    ctx: &Context,
     client: &AgentServiceClient,
     _health: &HealthClient,
     options: &mut Options,
@@ -1066,11 +1066,11 @@ fn agent_cmd_PullImage_image(
 
     let image = utils::get_option("image", options, args);
     let api_key = utils::get_option("api_key", options, args);
-    let gpg_key = utils::get_option("gpg_key", options, args)
+    let gpg_key = utils::get_option("gpg_key", options, args);
 
     req.set_container_id(image);
     req.set_api_key(api_key);
-    req.get_gpg_key(gpg_key);
+    req.set_gpg_key(gpg_key);
 
     debug!(sl!(), "sending request"; "request" => format!("{:?}", req));
 
