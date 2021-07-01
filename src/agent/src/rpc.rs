@@ -669,10 +669,9 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
 
         // Define the source and target protocols for the copy "from" and "to"
         let source_protocol: &str = "docker://";
-        let target_protocol: &str = "dir://";
 
-        // Define the target path i.e. "/tmp"
-        let target_path: &str = "/tmp/";
+        // Define the target protocol / path i.e. "dir:///tmp"
+        let target_path: &str = "dir:///tmp/";
 
         // Define the source image URL, combining protocol and image name e.g. "docker://us.icr.io/iks_with_hyperprotect/hello_world_nginx_june_2021:latest"
         let source_image = format!("{}{}",source_protocol,image);
