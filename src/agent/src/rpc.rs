@@ -667,15 +667,21 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         let image = req.get_container_id();
         let api_key = req.get_api_key();
 
-        let source: &str = "docker://";
-        let target: &str = "dir:/tmp";
-        let source_image = format!("{}{}",source,image);
+        // Define the source and target protocols for the copy "from" and "to"
+        let source_protocol: &str = "docker://";
+        let target_protocol: &str = "dir://";
+
+        // Define the source and target image URLs, combining protocol and image name
+        let source_image = format!("{}{}",source_protocol,image);
+        let target_image = format!("{}{}",target_protocol,image);
+
+        // Define the source credentials taking the KBot account API key from input
         let src_creds = format!("{}{}", "iamapikey:",api_key);
 
         let status = Command::new(SKOPEO_PATH)
             .arg("copy")
             .arg(source_image)
-            .arg(target)
+            .arg(target_image)
             .arg("--src-creds")
             .arg(src_creds)
             .status()
@@ -695,7 +701,7 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
 
         let image = req.get_container_id();
         let gpg_key = req.get_gpg_key();
-        let signature_file = format!("{}{}{}","/tmp/",image,"signature-1");
+        let signature_file = format!("{}{}{}","/tmp/",image,"/signature-1");
         let manifest_file = format!("{}{}{}","/tmp/",image,"/manifest.json");
 
         let status = Command::new(SKOPEO_PATH)
