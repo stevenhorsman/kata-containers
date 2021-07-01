@@ -671,9 +671,14 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         let source_protocol: &str = "docker://";
         let target_protocol: &str = "dir://";
 
-        // Define the source and target image URLs, combining protocol and image name
+        // Define the target path i.e. "/tmp"
+        let target_path: &str = "/tmp/"
+
+        // Define the source image URL, combining protocol and image name e.g. "docker://us.icr.io/iks_with_hyperprotect/hello_world_nginx_june_2021:latest"
         let source_image = format!("{}{}",source_protocol,image);
-        let target_image = format!("{}{}",target_protocol,image);
+
+        // Define the target image URL, combining protocol, path and image name e.g. "dir:///tmp/us.icr.io/iks_with_hyperprotect/hello_world_nginx_june_2021:latest"
+        let target_image = format!("{}{}{}",target_protocol,target_path,image);
 
         // Define the source credentials taking the KBot account API key from input
         let src_creds = format!("{}{}", "iamapikey:",api_key);
