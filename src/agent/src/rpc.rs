@@ -672,13 +672,13 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         let target_protocol: &str = "dir://";
 
         // Define the target path i.e. "/tmp"
-        let target_path: &str = "/tmp/"
+        let target_path: &str = "/tmp/";
 
         // Define the source image URL, combining protocol and image name e.g. "docker://us.icr.io/iks_with_hyperprotect/hello_world_nginx_june_2021:latest"
         let source_image = format!("{}{}",source_protocol,image);
 
         // Define the target image URL, combining protocol, path and image name e.g. "dir:///tmp/us.icr.io/iks_with_hyperprotect/hello_world_nginx_june_2021:latest"
-        let target_image = format!("{}{}{}",target_protocol,target_path,image);
+        // let target_image = format!("{}{}{}",target_protocol,target_path,image);
 
         // Define the source credentials taking the KBot account API key from input
         let src_creds = format!("{}{}", "iamapikey:",api_key);
@@ -686,7 +686,7 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         let status = Command::new(SKOPEO_PATH)
             .arg("copy")
             .arg(source_image)
-            .arg(target_image)
+            .arg(target_path)
             .arg("--src-creds")
             .arg(src_creds)
             .status()
@@ -706,8 +706,8 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
 
         let image = req.get_container_id();
         let gpg_key = req.get_gpg_key();
-        let signature_file = format!("{}{}{}","/tmp/",image,"/signature-1");
-        let manifest_file = format!("{}{}{}","/tmp/",image,"/manifest.json");
+        let signature_file: &str = "/tmp//signature-1";
+        let manifest_file: &str = "/tmp/manifest.json";
 
         let status = Command::new(SKOPEO_PATH)
             .arg("standalone-verify")
