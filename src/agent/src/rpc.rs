@@ -667,20 +667,17 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         let image = req.get_container_id();
         let api_key = req.get_api_key();
 
-        // Define the source and target protocols for the copy "from" and "to"
-        let source_protocol: &str = "docker://";
+        // Define the source transport for the copy "from"
+        let source_transport: &str = "docker://";
 
-        // Define the target protocol / path i.e. "dir:///tmp"
-        let target_path: &str = "dir:///tmp/";
-
-        // Define the source image URL, combining protocol and image name e.g. "docker://us.icr.io/iks_with_hyperprotect/hello_world_nginx_june_2021:latest"
-        let source_image = format!("{}{}",source_protocol,image);
-
-        // Define the target image URL, combining protocol, path and image name e.g. "dir:///tmp/us.icr.io/iks_with_hyperprotect/hello_world_nginx_june_2021:latest"
-        // let target_image = format!("{}{}{}",target_protocol,target_path,image);
+        // Define the source image URL, combining transport and image name e.g. "docker://us.icr.io/iks_with_hyperprotect/hello_world_nginx_june_2021:latest"
+        let source_image = format!("{}{}",source_transport,image);
 
         // Define the source credentials taking the KBot account API key from input
         let src_creds = format!("{}{}", "iamapikey:",api_key);
+
+        // Define the target transport and path i.e. "dir:///tmp/image"
+        let target_path: &str = "dir:///tmp/image/";
 
         let status = Command::new(SKOPEO_PATH)
             .arg("copy")
@@ -705,9 +702,10 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
 
         let image = req.get_container_id();
         let gpg_key = req.get_gpg_key();
-        let signature_file: &str = "/tmp//signature-1";
-        let manifest_file: &str = "/tmp/manifest.json";
+        let signature_file: &str = "/tmp/image/signature-1";
+        let manifest_file: &str = "/tmp/image/manifest.json";
 
+        /*
         let status = Command::new(SKOPEO_PATH)
             .arg("standalone-verify")
             .arg(manifest_file)
@@ -716,6 +714,20 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
             .arg(signature_file)
             .status()
             .expect("Failed to verify signature");
+        */
+
+        let status = Command::new("/root/skopeo_verify.sh")
+            .arg(manifest_file)
+            .arg(image)
+            .arg(gpg_key)
+            .arg(signature_file)
+            .status()
+            .expect("Failed to verify signature");
+
+        info!(sl!(), "manifest_file is: {}", manifest_file);
+        info!(sl!(), "signature_file is: {}", signature_file);
+        info!(sl!(), "gpg_key is: {}", gpg_key);
+        info!(sl!(), "image is: {}", image);
 
         info!(sl!(), "process finished with: {}", status);
 
