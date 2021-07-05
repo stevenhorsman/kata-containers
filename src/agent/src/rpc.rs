@@ -705,17 +705,17 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         let signature_file: &str = "/tmp/image/signature-1";
         let manifest_file: &str = "/tmp/image/manifest.json";
 
-        /*
         let status = Command::new(SKOPEO_PATH)
             .arg("standalone-verify")
             .arg(manifest_file)
             .arg(image)
             .arg(gpg_key)
             .arg(signature_file)
+            .arg("2>&1 >> /tmp/skopeo-standalone-verify.txt")
             .status()
             .expect("Failed to verify signature");
-        */
 
+        /*
         let status = Command::new("/root/skopeo_verify.sh")
             .arg(manifest_file)
             .arg(image)
@@ -723,6 +723,7 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
             .arg(signature_file)
             .status()
             .expect("Failed to verify signature");
+        */
 
         info!(sl!(), "manifest_file is: {}", manifest_file);
         info!(sl!(), "signature_file is: {}", signature_file);
