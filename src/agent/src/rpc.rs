@@ -679,6 +679,15 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         // Define the target transport and path i.e. "dir:///tmp/image"
         let target_path: &str = "dir:///tmp/image/";
 
+        // Create directory into which to copy the image
+        // Will add code to munge the image registry/namespace/repository/tag to make this more dynamic
+        let status = Command::new("mkdir")
+            .arg("-p")
+            .arg("/tmp/image")
+            .status()
+            .expect("Cannot create directory");
+
+        // Copy image
         let status = Command::new(SKOPEO_PATH)
             .arg("copy")
             .arg(source_image)
@@ -705,25 +714,29 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         let signature_file: &str = "/tmp/image/signature-1";
         let manifest_file: &str = "/tmp/image/manifest.json";
 
+        // Create a directory into which to import the public key
+        let status = Command::new("mkdir")
+            .arg("-p")
+            .arg("/tmp/gpg_home")
+            .status()
+            .expect("Cannot create directory");
+
+        // Import the public key
+        let status = Command::new("gpg")
+            .arg("--import")
+            .arg("~/davehay_pub.gpg")
+            .status()
+            .expect("Cannot import public key");
+
+        // Verify image
         let status = Command::new(SKOPEO_PATH)
             .arg("standalone-verify")
             .arg(manifest_file)
             .arg(image)
             .arg(gpg_key)
             .arg(signature_file)
-            .arg("2>&1 >> /tmp/skopeo-standalone-verify.txt")
             .status()
             .expect("Failed to verify signature");
-
-        /*
-        let status = Command::new("/root/skopeo_verify.sh")
-            .arg(manifest_file)
-            .arg(image)
-            .arg(gpg_key)
-            .arg(signature_file)
-            .status()
-            .expect("Failed to verify signature");
-        */
 
         info!(sl!(), "manifest_file is: {}", manifest_file);
         info!(sl!(), "signature_file is: {}", signature_file);
