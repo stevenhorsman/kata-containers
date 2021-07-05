@@ -744,14 +744,12 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
             .status5()
             .expect("Failed to verify signature");
 
-        info!(sl!(), "process finished with: {}", status5);
-
         info!(sl!(), "manifest_file is: {}", manifest_file);
         info!(sl!(), "signature_file is: {}", signature_file);
         info!(sl!(), "gpg_key is: {}", gpg_key);
         info!(sl!(), "image is: {}", image);
 
-        info!(sl!(), "process finished with: {}", status);
+        info!(sl!(), "process finished with: {}", status5);
 
         Ok(Empty::new())
     }
