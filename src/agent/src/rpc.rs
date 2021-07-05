@@ -687,6 +687,8 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
             .status()
             .expect("Cannot create directory");
 
+        info!(sl!(), "process finished with: {}", status);
+        
         // Copy image
         let status = Command::new(SKOPEO_PATH)
             .arg("copy")
