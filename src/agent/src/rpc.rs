@@ -681,25 +681,23 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
 
         // Create directory into which to copy the image
         // Will add code to munge the image registry/namespace/repository/tag to make this more dynamic
-        let status1 = Command::new("mkdir")
+        let status = Command::new("mkdir")
             .arg("-p")
             .arg("/tmp/image")
-            .status1()
+            .status()
             .expect("Cannot create directory");
 
-        info!(sl!(), "process finished with: {}", status1);
-
         // Copy image
-        let status2 = Command::new(SKOPEO_PATH)
+        let status = Command::new(SKOPEO_PATH)
             .arg("copy")
             .arg(source_image)
             .arg(target_path)
             .arg("--src-creds")
             .arg(src_creds)
-            .status2()
+            .status()
             .expect("Failed to pull image");
 
-        info!(sl!(), "process finished with: {}", status2);
+        info!(sl!(), "process finished with: {}", status);
 
         Ok(Empty::new())
     }
@@ -717,31 +715,31 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         let manifest_file: &str = "/tmp/image/manifest.json";
 
         // Create a directory into which to import the public key
-        let status3 = Command::new("mkdir")
+        let status = Command::new("mkdir")
             .arg("-p")
             .arg("/tmp/gpg_home")
-            .status3()
+            .status()
             .expect("Cannot create directory");
 
-        info!(sl!(), "process finished with: {}", status3);
+        info!(sl!(), "process finished with: {}", status);
 
         // Import the public key
-        let status4 = Command::new("gpg")
+        let status = Command::new("gpg")
             .arg("--import")
-            .arg("~/davehay_pub.gpg")
-            .status4()
+            .arg("/root/davehay_pub.gpg")
+            .status()
             .expect("Cannot import public key");
 
-        info!(sl!(), "process finished with: {}", status4);
+        info!(sl!(), "process finished with: {}", status);
 
         // Verify image
-        let status5 = Command::new(SKOPEO_PATH)
+        let status = Command::new(SKOPEO_PATH)
             .arg("standalone-verify")
             .arg(manifest_file)
             .arg(image)
             .arg(gpg_key)
             .arg(signature_file)
-            .status5()
+            .status()
             .expect("Failed to verify signature");
 
         info!(sl!(), "manifest_file is: {}", manifest_file);
@@ -749,7 +747,7 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         info!(sl!(), "gpg_key is: {}", gpg_key);
         info!(sl!(), "image is: {}", image);
 
-        info!(sl!(), "process finished with: {}", status5);
+        info!(sl!(), "process finished with: {}", status);
 
         Ok(Empty::new())
     }
