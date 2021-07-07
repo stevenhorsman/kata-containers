@@ -751,13 +751,15 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
     async fn unpack_image(
         &self,
         _ctx: &TtrpcContext,
+        req: protocols::agent::PauseContainerRequest,
     ) -> ttrpc::Result<protocols::empty::Empty> {
 
         let source_path: &str = "/tmp/image";
         let target_path: &str = "/tmp/image_bundle";
 
-        // Unpack image
+        info!(sl!(), "start_tracing {:?}", req);
 
+        // Unpack image
         let status = Command::new(UMOCI_PATH)
             .arg("unpack")
             .arg("--image")
