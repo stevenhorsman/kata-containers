@@ -178,6 +178,11 @@ static AGENT_CMDS: &'static [AgentCmd] = &[
       fp: agent_cmd_verify_image,
     },
     AgentCmd {
+        name: "UnpackImage",
+        st: ServiceType::Agent
+        fp: agent_cmd_unpack_image,
+    },
+    AgentCmd {
         name: "ReadStderr",
         st: ServiceType::Agent,
         fp: agent_cmd_container_read_stderr,
@@ -1076,6 +1081,33 @@ fn agent_cmd_verify_image(
 
     let reply = client
         .verify_image(ctx, &req)
+        .map_err(|e| anyhow!("{:?}", e).context(ERR_API_FAILED))?;
+
+    info!(sl!(), "response received";
+        "response" => format!("{:?}", reply));
+
+    Ok(())
+}
+
+fn agent_cmd_unpack_image(
+    ctx: &Context,
+    client: &AgentServiceClient,
+    _health: &HealthClient,
+    options: &mut Options,
+    args: &str,
+) -> Result<()> {
+    let mut req = PauseContainerRequest::default();
+
+    let ctx = clone_context(ctx);
+
+    let image = utils::get_option("image", options, args);
+
+    req.set_container_id(image);
+
+    debug!(sl!(), "sending request"; "request" => format!("{:?}", req));
+
+    let reply = client
+        .unpack_image(ctx, &req)
         .map_err(|e| anyhow!("{:?}", e).context(ERR_API_FAILED))?;
 
     info!(sl!(), "response received";

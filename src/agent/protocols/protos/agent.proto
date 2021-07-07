@@ -72,6 +72,9 @@ service AgentService {
 
 	// Testing Skopeo for image validation
 	rpc VerifyImage(PauseContainerRequest) returns (google.protobuf.Empty);
+
+	// Testing Umoci for image unpacking
+	rpc UnpackImage(PauseContainerRequest) returns (google.protobuf.Empty);
 }
 
 message CreateContainerRequest {

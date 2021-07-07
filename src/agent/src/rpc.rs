@@ -79,6 +79,7 @@ use std::path::PathBuf;
 const CONTAINER_BASE: &str = "/run/kata-containers";
 const MODPROBE_PATH: &str = "/sbin/modprobe";
 const SKOPEO_PATH: &str = "/usr/bin/skopeo";
+const UMOCI_PATH: &str = "/usr/local/bin/umoci.amd64";
 
 // Convenience macro to obtain the scope logger
 macro_rules! sl {
@@ -741,6 +742,31 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
             .arg(signature_file)
             .status()
             .expect("Failed to verify signature");
+
+        assert!(status.success());
+
+        Ok(Empty::new())
+    }
+
+    async fn unpack_image(
+        &self,
+        _ctx: &TtrpcContext,
+        req: protocols::agent::PauseContainerRequest,
+    ) -> ttrpc::Result<protocols::empty::Empty> {
+
+        let image = req.get_container_id();
+        let source_path: &str = "/tmp/image";
+        let target_path: &str = "/tmp/image_bundle";
+
+        // Unpack image
+
+        let status = Command::new(UMOCI_PATH)
+            .arg("unpack")
+            .arg("--image")
+            .arg(source_path)
+            .arg(target_path)
+            .status()
+            .expect("Failed to unpack image");
 
         assert!(status.success());
 
