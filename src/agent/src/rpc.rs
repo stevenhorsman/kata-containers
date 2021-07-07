@@ -754,7 +754,6 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         req: protocols::agent::PauseContainerRequest,
     ) -> ttrpc::Result<protocols::empty::Empty> {
 
-        let image = req.get_container_id();
         let source_path: &str = "/tmp/image";
         let target_path: &str = "/tmp/image_bundle";
 
