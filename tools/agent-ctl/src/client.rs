@@ -178,9 +178,9 @@ static AGENT_CMDS: &'static [AgentCmd] = &[
       fp: agent_cmd_verify_image,
     },
     AgentCmd {
-        name: "UnpackImage",
-        st: ServiceType::Agent
-        fp: agent_cmd_unpack_image,
+      name: "UnpackImage",
+      st: ServiceType::Agent,
+      fp: agent_cmd_unpack_image,
     },
     AgentCmd {
         name: "ReadStderr",
