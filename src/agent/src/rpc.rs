@@ -677,10 +677,10 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         let source_creds = format!("{}{}", "iamapikey:",api_key);
 
         // Define the target tranport and path for the manifest image, with signature e.g. "dir:///tmp/image_manifest"
-        let target_path_manifest: &str = "dir:///tmp/image_manifest/";
+        let target_path_manifest: &str = "dir:///tmp/image_manifest";
 
         // Define the target transport and path for the OCI image, without signature e.g. "oci:///tmp/image_oci"
-        let target_path_oci: &str = "oci:///tmp/image_oci/";
+        let target_path_oci: &str = "oci:///tmp/image_oci:latest";
 
         // Create directory into which to copy the manifest image
         // Will add code to munge the image registry/namespace/repository/tag to make this more dynamic
