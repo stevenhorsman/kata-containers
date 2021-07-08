@@ -674,30 +674,47 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         let source_image = format!("{}{}",source_transport,image);
 
         // Define the source credentials taking the KBot account API key from input
-        let src_creds = format!("{}{}", "iamapikey:",api_key);
+        let source_creds = format!("{}{}", "iamapikey:",api_key);
 
-        // Define the target transport and path i.e. "dir:///tmp/image"
-        let target_path: &str = "dir:///tmp/image/";
+        // Define the target tranport and path for the manifest image, with signature e.g. "dir:///tmp/image_manifest"
+        let target_path_manifest: &str = "dir:///tmp/image_manifest/";
 
-        // Create directory into which to copy the image
-        // Will add code to munge the image registry/namespace/repository/tag to make this more dynamic
-        let status = Command::new("mkdir")
-            .arg("-p")
-            .arg("/tmp/image")
-            .status()
-            .expect("Cannot create directory");
+        // Define the target transport and path for the OCI image, without signature e.g. "oci:///tmp/image_oci"
+        let target_path_oci: &str = "oci:///tmp/image_oci/";
 
-        assert!(status.success());
+        // // Create directory into which to copy the image
+        // // Will add code to munge the image registry/namespace/repository/tag to make this more dynamic
+        // let status = Command::new("mkdir")
+        //     .arg("-p")
+        //     .arg("/tmp/image")
+        //     .status()
+        //     .expect("Cannot create directory");
+
+        // assert!(status.success());
         
-        // Copy image
+        // Copy image from image registry to local file-system
+        // Resulting image is stored in manifest format, and includes the signature
         let status = Command::new(SKOPEO_PATH)
             .arg("copy")
             .arg(source_image)
-            .arg(target_path)
+            .arg(target_path_manifest)
             .arg("--src-creds")
-            .arg(src_creds)
+            .arg(source_creds)
             .status()
             .expect("Failed to pull image");
+
+        assert!(status.success());
+
+        // Copy image from one local file-system to another
+        // Resulting image is still stored in manifest format, but no longer includes the signature
+        // The image with a signature can then be unpacked into a bundle
+        let status = Command::new(SKOPEO_PATH)
+            .arg("copy")
+            .arg(source_image)
+            .arg(target_path_oci)
+            .arg("--remove-signatures")
+            .status()
+            .expect("Failed to copy image");
 
         assert!(status.success());
 
@@ -712,8 +729,8 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
 
         let image = req.get_container_id();
         let gpg_key = req.get_gpg_key();
-        let signature_file: &str = "/tmp/image/signature-1";
-        let manifest_file: &str = "/tmp/image/manifest.json";
+        let signature_file: &str = "/tmp/image_manifest/signature-1";
+        let manifest_file: &str = "/tmp/image_manifest/manifest.json";
 
         // Create a directory into which to import the public key
         let status = Command::new("mkdir")
@@ -754,10 +771,10 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         req: protocols::agent::PauseContainerRequest,
     ) -> ttrpc::Result<protocols::empty::Empty> {
 
-        let source_path: &str = "/tmp/image";
+        let source_path: &str = "/tmp/image_oci:latest";
         let target_path: &str = "/tmp/image_bundle";
 
-        info!(sl!(), "start_tracing {:?}", req);
+        info!(sl!(), "unpacking image into bundle {:?}", req);
 
         // Unpack image
         let status = Command::new(UMOCI_PATH)
