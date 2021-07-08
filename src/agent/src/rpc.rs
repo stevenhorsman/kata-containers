@@ -682,16 +682,27 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         // Define the target transport and path for the OCI image, without signature e.g. "oci:///tmp/image_oci"
         let target_path_oci: &str = "oci:///tmp/image_oci/";
 
-        // // Create directory into which to copy the image
-        // // Will add code to munge the image registry/namespace/repository/tag to make this more dynamic
-        // let status = Command::new("mkdir")
-        //     .arg("-p")
-        //     .arg("/tmp/image")
-        //     .status()
-        //     .expect("Cannot create directory");
+        // Create directory into which to copy the manifest image
+        // Will add code to munge the image registry/namespace/repository/tag to make this more dynamic
+        let status = Command::new("mkdir")
+            .arg("-v")
+            .arg("-p")
+            .arg("/tmp/image_manifest")
+            .status()
+            .expect("Cannot create directory");
 
-        // assert!(status.success());
+        assert!(status.success());
         
+        // Create directory into which to copy the OCI image
+        // Will add code to munge the image registry/namespace/repository/tag to make this more dynamic
+        let status = Command::new("mkdir")
+            .arg("-v")
+            .arg("-p")
+            .arg("/tmp/image_oci")
+            .status()
+            .expect("Cannot create directory");
+
+        assert!(status.success());
         // Copy image from image registry to local file-system
         // Resulting image is stored in manifest format, and includes the signature
         let status = Command::new(SKOPEO_PATH)
@@ -710,7 +721,7 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         // The image with a signature can then be unpacked into a bundle
         let status = Command::new(SKOPEO_PATH)
             .arg("copy")
-            .arg(source_image)
+            .arg(target_path_manifest)
             .arg(target_path_oci)
             .arg("--remove-signatures")
             .status()
