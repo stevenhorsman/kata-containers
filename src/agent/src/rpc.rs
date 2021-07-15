@@ -79,7 +79,7 @@ use std::path::PathBuf;
 const CONTAINER_BASE: &str = "/run/kata-containers";
 const MODPROBE_PATH: &str = "/sbin/modprobe";
 const SKOPEO_PATH: &str = "/usr/bin/skopeo";
-const UMOCI_PATH: &str = "/usr/local/bin/umoci.amd64";
+const UMOCI_PATH: &str = "/usr/local/bin/umoci";
 
 // Convenience macro to obtain the scope logger
 macro_rules! sl {
