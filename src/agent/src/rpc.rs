@@ -789,10 +789,9 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
 
         // Unpack image
         let status = Command::new(UMOCI_PATH)
+            .arg("--verbose")
             .arg("unpack")
             .arg("--image")
-            .arg("--log")
-            .arg("debug")
             .arg(source_path)
             .arg(target_path)
             .status()
