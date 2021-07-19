@@ -221,14 +221,15 @@ impl AgentService {
         verify_cid(&cid)?;
 
         let mut s;
-        
+        let processRef = "123";
+
         let mut ctr: LinuxContainer =
             LinuxContainer::new(cid, CONTAINER_BASE_TOO, &sl!())?;
 
         let pipe_size = AGENT_CONFIG.read().await.container_pipe_size;
         let p = Process::new(
                 &sl!(),
-                &oci.process.as_ref().unwrap(),
+                processRef,
                 cid,
                 true,
                 pipe_size,
