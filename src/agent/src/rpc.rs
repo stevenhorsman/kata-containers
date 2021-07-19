@@ -220,18 +220,8 @@ impl AgentService {
 
         verify_cid(&cid)?;
 
-        let opts = CreateOpts {
-            cgroup_name: "".to_string(),
-            use_systemd_cgroup: false,
-            no_pivot_root: s.no_pivot_root,
-            no_new_keyring: false,
-            spec: Some(oci.clone()),
-            rootless_euid: false,
-            rootless_cgroup: false,
-        };
-
         let mut ctr: LinuxContainer =
-            LinuxContainer::new(cid, CONTAINER_BASE_TOO, opts, &sl!())?;
+            LinuxContainer::new(cid, CONTAINER_BASE_TOO, &sl!())?;
 
         let pipe_size = AGENT_CONFIG.read().await.container_pipe_size;
         let p = if oci.process.is_some() {

@@ -1128,7 +1128,7 @@ fn agent_cmd_container_create_too(
     options: &mut Options,
     args: &str,
 ) -> Result<()> {
-    let mut req = PauseContainerRequest::default();
+    let mut req = CreateContainerRequest::default();
 
     let ctx = clone_context(ctx);
 
@@ -1139,7 +1139,7 @@ fn agent_cmd_container_create_too(
     debug!(sl!(), "sending request"; "request" => format!("{:?}", req));
 
     let reply = client
-        .do_create_container_too(ctx, &req)
+        .create_container_too(ctx, &req)
         .map_err(|e| anyhow!("{:?}", e).context(ERR_API_FAILED))?;
 
     info!(sl!(), "response received";
