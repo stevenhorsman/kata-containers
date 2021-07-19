@@ -211,6 +211,105 @@ impl AgentService {
         Ok(())
     }
 
+    async fn do_create_container_too(
+        &self,
+        req: protocols::agent::CreateContainerRequest,
+    ) -> Result<()> {
+        let cid = "012345678";
+
+        verify_cid(&cid)?;
+
+        let mut oci_spec = req.OCI.clone();
+        let use_sandbox_pidns = req.get_sandbox_pidns();
+
+        let sandbox;
+        let mut s;
+
+        let mut oci = match oci_spec.as_mut() {
+            Some(spec) => rustjail::grpc_to_oci(spec),
+            None => {
+                error!(sl!(), "no oci spec in the create container request!");
+                return Err(anyhow!(nix::Error::from_errno(nix::errno::Errno::EINVAL)));
+            }
+        };
+
+        info!(sl!(), "receive createcontainer, spec: {:?}", &oci);
+
+        // re-scan PCI bus
+        // looking for hidden devices
+        rescan_pci_bus().context("Could not rescan PCI bus")?;
+
+        // Some devices need some extra processing (the ones invoked with
+        // --device for instance), and that's what this call is doing. It
+        // updates the devices listed in the OCI spec, so that they actually
+        // match real devices inside the VM. This step is necessary since we
+        // cannot predict everything from the caller.
+        add_devices(&req.devices.to_vec(), &mut oci, &self.sandbox).await?;
+
+        // Both rootfs and volumes (invoked with --volume for instance) will
+        // be processed the same way. The idea is to always mount any provided
+        // storage to the specified MountPoint, so that it will match what's
+        // inside oci.Mounts.
+        // After all those storages have been processed, no matter the order
+        // here, the agent will rely on rustjail (using the oci.Mounts
+        // list) to bind mount all of them inside the container.
+        let m = add_storages(sl!(), req.storages.to_vec(), self.sandbox.clone()).await?;
+        {
+            sandbox = self.sandbox.clone();
+            s = sandbox.lock().await;
+            s.container_mounts.insert(cid.clone(), m);
+        }
+
+        update_container_namespaces(&s, &mut oci, use_sandbox_pidns)?;
+
+        // Add the root partition to the device cgroup to prevent access
+        update_device_cgroup(&mut oci)?;
+
+        // Append guest hooks
+        append_guest_hooks(&s, &mut oci);
+
+        // write spec to bundle path, hooks might
+        // read ocispec
+        let olddir = setup_bundle_too(&cid, &mut oci)?;
+        // restore the cwd for kata-agent process.
+        defer!(unistd::chdir(&olddir).unwrap());
+
+        let opts = CreateOpts {
+            cgroup_name: "".to_string(),
+            use_systemd_cgroup: false,
+            no_pivot_root: s.no_pivot_root,
+            no_new_keyring: false,
+            spec: Some(oci.clone()),
+            rootless_euid: false,
+            rootless_cgroup: false,
+        };
+
+        let mut ctr: LinuxContainer =
+            LinuxContainer::new(cid.as_str(), CONTAINER_BASE, opts, &sl!())?;
+
+        let pipe_size = AGENT_CONFIG.read().await.container_pipe_size;
+        let p = if oci.process.is_some() {
+            Process::new(
+                &sl!(),
+                &oci.process.as_ref().unwrap(),
+                cid.as_str(),
+                true,
+                pipe_size,
+            )?
+        } else {
+            info!(sl!(), "no process configurations!");
+            return Err(anyhow!(nix::Error::from_errno(nix::errno::Errno::EINVAL)));
+        };
+
+        ctr.start(p).await?;
+
+        s.update_shared_pidns(&ctr)?;
+        s.add_container(ctr);
+        info!(sl!(), "created container!");
+
+        Ok(())
+    }
+
     #[instrument]
     async fn do_start_container(&self, req: protocols::agent::StartContainerRequest) -> Result<()> {
         let cid = req.container_id;
@@ -1766,6 +1865,44 @@ fn setup_bundle(cid: &str, spec: &mut Spec) -> Result<PathBuf> {
     let spec_root = spec.root.as_ref().unwrap();
 
     let bundle_path = Path::new(CONTAINER_BASE).join(cid);
+    let config_path = bundle_path.join("config.json");
+    let rootfs_path = bundle_path.join("rootfs");
+
+    fs::create_dir_all(&rootfs_path)?;
+    BareMount::new(
+        &spec_root.path,
+        rootfs_path.to_str().unwrap(),
+        "bind",
+        MsFlags::MS_BIND,
+        "",
+        &sl!(),
+    )
+    .mount()?;
+    spec.root = Some(Root {
+        path: rootfs_path.to_str().unwrap().to_owned(),
+        readonly: spec_root.readonly,
+    });
+
+    info!(
+        sl!(),
+        "{:?}",
+        spec.process.as_ref().unwrap().console_size.as_ref()
+    );
+    let _ = spec.save(config_path.to_str().unwrap());
+
+    let olddir = unistd::getcwd().context("cannot getcwd")?;
+    unistd::chdir(bundle_path.to_str().unwrap())?;
+
+    Ok(olddir)
+}
+
+fn setup_bundle_too(cid: &str, spec: &mut Spec) -> Result<PathBuf> {
+    if spec.root.is_none() {
+        return Err(nix::Error::Sys(Errno::EINVAL).into());
+    }
+    let spec_root = spec.root.as_ref().unwrap();
+
+    let bundle_path = Path::new("/tmp/image_bundle").join(cid);
     let config_path = bundle_path.join("config.json");
     let rootfs_path = bundle_path.join("rootfs");
 
