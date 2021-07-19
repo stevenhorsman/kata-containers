@@ -220,22 +220,19 @@ impl AgentService {
 
         verify_cid(&cid)?;
 
+        let mut s;
+        
         let mut ctr: LinuxContainer =
             LinuxContainer::new(cid, CONTAINER_BASE_TOO, &sl!())?;
 
         let pipe_size = AGENT_CONFIG.read().await.container_pipe_size;
-        let p = if oci.process.is_some() {
-            Process::new(
+        let p = Process::new(
                 &sl!(),
                 &oci.process.as_ref().unwrap(),
                 cid,
                 true,
                 pipe_size,
-            )?
-        } else {
-            info!(sl!(), "no process configurations!");
-            return Err(anyhow!(nix::Error::from_errno(nix::errno::Errno::EINVAL)));
-        };
+            );
 
         ctr.start(p).await?;
 
