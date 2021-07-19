@@ -77,6 +77,7 @@ use std::os::unix::fs::FileExt;
 use std::path::PathBuf;
 
 const CONTAINER_BASE: &str = "/run/kata-containers";
+const CONTAINER_BASE_TOO: &str = "/tmp/image_bundle";
 const MODPROBE_PATH: &str = "/sbin/modprobe";
 const SKOPEO_PATH: &str = "/usr/bin/skopeo";
 const UMOCI_PATH: &str = "/usr/local/bin/umoci";
@@ -219,61 +220,6 @@ impl AgentService {
 
         verify_cid(&cid)?;
 
-        let mut oci_spec = req.OCI.clone();
-        let use_sandbox_pidns = req.get_sandbox_pidns();
-
-        let sandbox;
-        let mut s;
-
-        let mut oci = match oci_spec.as_mut() {
-            Some(spec) => rustjail::grpc_to_oci(spec),
-            None => {
-                error!(sl!(), "no oci spec in the create container request!");
-                return Err(anyhow!(nix::Error::from_errno(nix::errno::Errno::EINVAL)));
-            }
-        };
-
-        info!(sl!(), "receive createcontainer, spec: {:?}", &oci);
-
-        // re-scan PCI bus
-        // looking for hidden devices
-        rescan_pci_bus().context("Could not rescan PCI bus")?;
-
-        // Some devices need some extra processing (the ones invoked with
-        // --device for instance), and that's what this call is doing. It
-        // updates the devices listed in the OCI spec, so that they actually
-        // match real devices inside the VM. This step is necessary since we
-        // cannot predict everything from the caller.
-        add_devices(&req.devices.to_vec(), &mut oci, &self.sandbox).await?;
-
-        // Both rootfs and volumes (invoked with --volume for instance) will
-        // be processed the same way. The idea is to always mount any provided
-        // storage to the specified MountPoint, so that it will match what's
-        // inside oci.Mounts.
-        // After all those storages have been processed, no matter the order
-        // here, the agent will rely on rustjail (using the oci.Mounts
-        // list) to bind mount all of them inside the container.
-        let m = add_storages(sl!(), req.storages.to_vec(), self.sandbox.clone()).await?;
-        {
-            sandbox = self.sandbox.clone();
-            s = sandbox.lock().await;
-            s.container_mounts.insert(cid.clone(), m);
-        }
-
-        update_container_namespaces(&s, &mut oci, use_sandbox_pidns)?;
-
-        // Add the root partition to the device cgroup to prevent access
-        update_device_cgroup(&mut oci)?;
-
-        // Append guest hooks
-        append_guest_hooks(&s, &mut oci);
-
-        // write spec to bundle path, hooks might
-        // read ocispec
-        let olddir = setup_bundle_too(&cid, &mut oci)?;
-        // restore the cwd for kata-agent process.
-        defer!(unistd::chdir(&olddir).unwrap());
-
         let opts = CreateOpts {
             cgroup_name: "".to_string(),
             use_systemd_cgroup: false,
@@ -285,14 +231,14 @@ impl AgentService {
         };
 
         let mut ctr: LinuxContainer =
-            LinuxContainer::new(cid.as_str(), CONTAINER_BASE, opts, &sl!())?;
+            LinuxContainer::new(cid, CONTAINER_BASE_TOO, opts, &sl!())?;
 
         let pipe_size = AGENT_CONFIG.read().await.container_pipe_size;
         let p = if oci.process.is_some() {
             Process::new(
                 &sl!(),
                 &oci.process.as_ref().unwrap(),
-                cid.as_str(),
+                cid,
                 true,
                 pipe_size,
             )?
@@ -637,6 +583,17 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
     ) -> ttrpc::Result<Empty> {
         trace_rpc_call!(ctx, "create_container", req);
         match self.do_create_container(req).await {
+            Err(e) => Err(ttrpc_error(ttrpc::Code::INTERNAL, e.to_string())),
+            Ok(_) => Ok(Empty::new()),
+        }
+    }
+
+    async fn create_container_too(
+        &self,
+        _ctx: &TtrpcContext,
+        req: protocols::agent::CreateContainerRequest,
+    ) -> ttrpc::Result<Empty> {
+        match self.do_create_container_too(req).await {
             Err(e) => Err(ttrpc_error(ttrpc::Code::INTERNAL, e.to_string())),
             Ok(_) => Ok(Empty::new()),
         }
@@ -1902,7 +1859,7 @@ fn setup_bundle_too(cid: &str, spec: &mut Spec) -> Result<PathBuf> {
     }
     let spec_root = spec.root.as_ref().unwrap();
 
-    let bundle_path = Path::new("/tmp/image_bundle").join(cid);
+    let bundle_path = Path::new(CONTAINER_BASE_TOO).join(cid);
     let config_path = bundle_path.join("config.json");
     let rootfs_path = bundle_path.join("rootfs");
 
