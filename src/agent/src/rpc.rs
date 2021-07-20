@@ -220,25 +220,10 @@ impl AgentService {
 
         verify_cid(&cid)?;
 
-        let mut s;
-        let processRef = "123";
-
-        let mut ctr: LinuxContainer =
-            LinuxContainer::new(cid, CONTAINER_BASE_TOO, &sl!())?;
-
-        let pipe_size = AGENT_CONFIG.read().await.container_pipe_size;
-        let p = Process::new(
-                &sl!(),
-                processRef,
-                cid,
-                true,
-                pipe_size,
-            );
+        let mut ctr: LinuxContainer = LinuxContainer::new(cid, CONTAINER_BASE_TOO, &sl!())?;
 
         ctr.start(p).await?;
 
-        s.update_shared_pidns(&ctr)?;
-        s.add_container(ctr);
         info!(sl!(), "created container!");
 
         Ok(())
