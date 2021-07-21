@@ -1849,43 +1849,43 @@ fn setup_bundle(cid: &str, spec: &mut Spec) -> Result<PathBuf> {
     Ok(olddir)
 }
 
-fn setup_bundle_too(cid: &str, spec: &mut Spec) -> Result<PathBuf> {
-    if spec.root.is_none() {
-        return Err(nix::Error::Sys(Errno::EINVAL).into());
-    }
-    let spec_root = spec.root.as_ref().unwrap();
+// fn setup_bundle_too(cid: &str, spec: &mut Spec) -> Result<PathBuf> {
+//     if spec.root.is_none() {
+//         return Err(nix::Error::Sys(Errno::EINVAL).into());
+//     }
+//     let spec_root = spec.root.as_ref().unwrap();
 
-    let bundle_path = Path::new(CONTAINER_BASE_TOO).join(cid);
-    let config_path = bundle_path.join("config.json");
-    let rootfs_path = bundle_path.join("rootfs");
+//     let bundle_path = Path::new(CONTAINER_BASE_TOO).join(cid);
+//     let config_path = bundle_path.join("config.json");
+//     let rootfs_path = bundle_path.join("rootfs");
 
-    fs::create_dir_all(&rootfs_path)?;
-    BareMount::new(
-        &spec_root.path,
-        rootfs_path.to_str().unwrap(),
-        "bind",
-        MsFlags::MS_BIND,
-        "",
-        &sl!(),
-    )
-    .mount()?;
-    spec.root = Some(Root {
-        path: rootfs_path.to_str().unwrap().to_owned(),
-        readonly: spec_root.readonly,
-    });
+//     fs::create_dir_all(&rootfs_path)?;
+//     BareMount::new(
+//         &spec_root.path,
+//         rootfs_path.to_str().unwrap(),
+//         "bind",
+//         MsFlags::MS_BIND,
+//         "",
+//         &sl!(),
+//     )
+//     .mount()?;
+//     spec.root = Some(Root {
+//         path: rootfs_path.to_str().unwrap().to_owned(),
+//         readonly: spec_root.readonly,
+//     });
 
-    info!(
-        sl!(),
-        "{:?}",
-        spec.process.as_ref().unwrap().console_size.as_ref()
-    );
-    let _ = spec.save(config_path.to_str().unwrap());
+//     info!(
+//         sl!(),
+//         "{:?}",
+//         spec.process.as_ref().unwrap().console_size.as_ref()
+//     );
+//     let _ = spec.save(config_path.to_str().unwrap());
 
-    let olddir = unistd::getcwd().context("cannot getcwd")?;
-    unistd::chdir(bundle_path.to_str().unwrap())?;
+//     let olddir = unistd::getcwd().context("cannot getcwd")?;
+//     unistd::chdir(bundle_path.to_str().unwrap())?;
 
-    Ok(olddir)
-}
+//     Ok(olddir)
+// }
 
 fn cleanup_process(p: &mut Process) -> Result<()> {
     if p.parent_stdin.is_some() {
