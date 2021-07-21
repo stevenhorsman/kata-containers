@@ -20,6 +20,7 @@ use ttrpc::{
 };
 
 use anyhow::{anyhow, Context, Result};
+use oci::Linux;
 use oci::{LinuxNamespace, Root, Spec};
 use protobuf::{RepeatedField, SingularPtrField};
 use protocols::agent::{
@@ -212,6 +213,29 @@ impl AgentService {
         Ok(())
     }
 
+    fn create_dummy_opts() -> CreateOpts {
+        let root = Root {
+            path: String::from("/"),
+            ..Default::default()
+        };
+
+        let spec = Spec {
+            linux: Some(Linux::default()),
+            root: Some(root),
+            ..Default::default()
+        };
+
+        CreateOpts {
+            cgroup_name: "".to_string(),
+            use_systemd_cgroup: false,
+            no_pivot_root: false,
+            no_new_keyring: false,
+            spec: Some(spec),
+            rootless_euid: false,
+            rootless_cgroup: false,
+        }
+    }
+
     async fn do_create_container_too(
         &self,
         req: protocols::agent::CreateContainerRequest,
@@ -220,11 +244,10 @@ impl AgentService {
 
         verify_cid(&cid)?;
 
-        let mut ctr: LinuxContainer = LinuxContainer::new(cid, CONTAINER_BASE_TOO, &sl!())?;
+        let ctr: LinuxContainer = LinuxContainer::new(cid, CONTAINER_BASE_TOO, Self::create_dummy_opts(), &sl!())?;
 
-        ctr.start(p).await?;
-
-        info!(sl!(), "created container!");
+        info!(sl!(), "created container! {:?}", req);
+        info!(sl!(), "created container! {:?}", ctr);
 
         Ok(())
     }
