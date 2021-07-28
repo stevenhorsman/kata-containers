@@ -20,7 +20,6 @@ use ttrpc::{
 };
 
 use anyhow::{anyhow, Context, Result};
-use oci::Linux;
 use oci::{LinuxNamespace, Root, Spec};
 use protobuf::{RepeatedField, SingularPtrField};
 use protocols::agent::{
@@ -81,10 +80,9 @@ const CONTAINER_BASE: &str = "/run/kata-containers";
 const MODPROBE_PATH: &str = "/sbin/modprobe";
 const SKOPEO_PATH: &str = "/usr/bin/skopeo";
 const UMOCI_PATH: &str = "/usr/local/bin/umoci";
-const IMAGE_MANIFEST = format("{}{}", CONTAINER_BASE, "/image_manifest");
-const IMAGE_OCI = format("{}{}", CONTAINER_BASE, "/image_oci");
-const IMAGE_BUNDLE = format("{}{}", CONTAINER_BASE, "/image_bundle");
-const GPG_HOME = format("{}{}", CONTAINER_BASE, "/gpg_home");
+const IMAGE_MANIFEST: &str = "/tmp/image_manifest";
+const IMAGE_OCI: &str = "/tmp/image_oci";
+const GPG_HOME: &str = "/tmp/gpg_home";
 
 // Convenience macro to obtain the scope logger
 macro_rules! sl {
@@ -547,17 +545,6 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         }
     }
 
-    async fn create_container_too(
-        &self,
-        _ctx: &TtrpcContext,
-        req: protocols::agent::CreateContainerRequest,
-    ) -> ttrpc::Result<Empty> {
-        match self.do_create_container_too(req).await {
-            Err(e) => Err(ttrpc_error(ttrpc::Code::INTERNAL, e.to_string())),
-            Ok(_) => Ok(Empty::new()),
-        }
-    }
-
     async fn start_container(
         &self,
         ctx: &TtrpcContext,
@@ -702,7 +689,7 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         let status = Command::new("mkdir")
             .arg("-v")
             .arg("-p")
-            .arg(target_path_manifest)
+            .arg(&target_path_manifest)
             .status()
             .expect("Cannot create directory");
 
@@ -724,7 +711,7 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         let status = Command::new(SKOPEO_PATH)
             .arg("copy")
             .arg(source_image)
-            .arg(target_path_manifest)
+            .arg(&target_path_manifest)
             .arg("--src-creds")
             .arg(source_creds)
             .status()
@@ -737,8 +724,8 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         // The image with a signature can then be unpacked into a bundle
         let status = Command::new(SKOPEO_PATH)
             .arg("copy")
-            .arg(target_path_manifest)
-            .arg(target_path_oci)
+            .arg(&target_path_manifest)
+            .arg(&target_path_oci)
             .arg("--remove-signatures")
             .status()
             .expect("Failed to copy image");
@@ -799,8 +786,9 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         req: protocols::agent::PauseContainerRequest,
     ) -> ttrpc::Result<protocols::empty::Empty> {
 
+        let cid = req.get_container_id();
         let source_path_oci = format!("{}{}", "oci://", IMAGE_OCI);
-        let target_path_bundle = format!("{}{}", "dir://", IMAGE_BUNDLE);
+        let target_path_bundle = format!("{}{}{}", "dir://", CONTAINER_BASE, cid);
 
         info!(sl!(), "unpacking image into bundle {:?}", req);
 
