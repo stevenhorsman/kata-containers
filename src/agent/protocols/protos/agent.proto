@@ -75,9 +75,6 @@ service AgentService {
 
 	// Testing Umoci for image unpacking
 	rpc UnpackImage(PauseContainerRequest) returns (google.protobuf.Empty);
-
-	// Testing Kata container
-	rpc CreateContainerToo(PauseContainerRequest) returns (google.protobuf.Empty);
 }
 
 message CreateContainerRequest {

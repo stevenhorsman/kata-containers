@@ -78,10 +78,13 @@ use std::os::unix::fs::FileExt;
 use std::path::PathBuf;
 
 const CONTAINER_BASE: &str = "/run/kata-containers";
-const CONTAINER_BASE_TOO: &str = "/tmp/image_bundle";
 const MODPROBE_PATH: &str = "/sbin/modprobe";
 const SKOPEO_PATH: &str = "/usr/bin/skopeo";
 const UMOCI_PATH: &str = "/usr/local/bin/umoci";
+const IMAGE_MANIFEST = format("{}{}", CONTAINER_BASE, "/image_manifest");
+const IMAGE_OCI = format("{}{}", CONTAINER_BASE, "/image_oci");
+const IMAGE_BUNDLE = format("{}{}", CONTAINER_BASE, "/image_bundle");
+const GPG_HOME = format("{}{}", CONTAINER_BASE, "/gpg_home");
 
 // Convenience macro to obtain the scope logger
 macro_rules! sl {
@@ -213,46 +216,6 @@ impl AgentService {
         Ok(())
     }
 
-    fn create_dummy_opts() -> CreateOpts {
-        let root = Root {
-            path: String::from("/"),
-            ..Default::default()
-        };
-
-        let spec = Spec {
-            linux: Some(Linux::default()),
-            root: Some(root),
-            ..Default::default()
-        };
-
-        CreateOpts {
-            cgroup_name: "".to_string(),
-            use_systemd_cgroup: false,
-            no_pivot_root: false,
-            no_new_keyring: false,
-            spec: Some(spec),
-            rootless_euid: false,
-            rootless_cgroup: false,
-        }
-    }
-
-    async fn do_create_container_too(
-        &self,
-        req: protocols::agent::CreateContainerRequest,
-    ) -> Result<()> {
-        let cid = "012345678";
-
-        verify_cid(&cid)?;
-
-        let ctr: LinuxContainer = LinuxContainer::new(cid, CONTAINER_BASE_TOO, Self::create_dummy_opts(), &sl!())?;
-
-        info!(sl!(), "created container! {:?}", req);
-        info!(sl!(), "created container! {:?}", ctr);
-
-        Ok(())
-    }
-
-    #[instrument]
     async fn do_start_container(&self, req: protocols::agent::StartContainerRequest) -> Result<()> {
         let cid = req.container_id;
 
@@ -728,18 +691,18 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         // Define the source credentials taking the KBot account API key from input
         let source_creds = format!("{}{}", "iamapikey:",api_key);
 
-        // Define the target tranport and path for the manifest image, with signature e.g. "dir:///tmp/image_manifest"
-        let target_path_manifest: &str = "dir:///tmp/image_manifest";
+        // Define the target tranport and path for the manifest image, with signature
+        let target_path_manifest = format!("{}{}", "dir://", IMAGE_MANIFEST);
 
-        // Define the target transport and path for the OCI image, without signature e.g. "oci:///tmp/image_oci"
-        let target_path_oci: &str = "oci:///tmp/image_oci:latest";
+        // Define the target transport and path for the OCI image, without signature
+        let target_path_oci = format!("{}{}", "oci://", IMAGE_OCI);
 
         // Create directory into which to copy the manifest image
         // Will add code to munge the image registry/namespace/repository/tag to make this more dynamic
         let status = Command::new("mkdir")
             .arg("-v")
             .arg("-p")
-            .arg("/tmp/image_manifest")
+            .arg(target_path_manifest)
             .status()
             .expect("Cannot create directory");
 
@@ -750,11 +713,12 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         let status = Command::new("mkdir")
             .arg("-v")
             .arg("-p")
-            .arg("/tmp/image_oci")
+            .arg(target_path_oci)
             .status()
             .expect("Cannot create directory");
 
         assert!(status.success());
+
         // Copy image from image registry to local file-system
         // Resulting image is stored in manifest format, and includes the signature
         let status = Command::new(SKOPEO_PATH)
@@ -792,13 +756,14 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
 
         let image = req.get_container_id();
         let gpg_key = req.get_gpg_key();
-        let signature_file: &str = "/tmp/image_manifest/signature-1";
-        let manifest_file: &str = "/tmp/image_manifest/manifest.json";
+        let target_path_manifest = format!("{}{}", "dir://", IMAGE_MANIFEST);
+        let signature_file = format!("{}{}", target_path_manifest, "/signature-1");
+        let manifest_file = format!("{}{}", target_path_manifest, "/manifest.json");
 
         // Create a directory into which to import the public key
         let status = Command::new("mkdir")
             .arg("-p")
-            .arg("/tmp/gpg_home")
+            .arg(GPG_HOME)
             .status()
             .expect("Cannot create directory");
 
@@ -834,8 +799,8 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         req: protocols::agent::PauseContainerRequest,
     ) -> ttrpc::Result<protocols::empty::Empty> {
 
-        let source_path: &str = "/tmp/image_oci:latest";
-        let target_path: &str = "/tmp/image_bundle";
+        let source_path_oci = format!("{}{}", "oci://", IMAGE_OCI);
+        let target_path_bundle = format!("{}{}", "dir://", IMAGE_BUNDLE);
 
         info!(sl!(), "unpacking image into bundle {:?}", req);
 
@@ -844,8 +809,8 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
             .arg("--verbose")
             .arg("unpack")
             .arg("--image")
-            .arg(source_path)
-            .arg(target_path)
+            .arg(source_path_oci)
+            .arg(target_path_bundle)
             .status()
             .expect("Failed to unpack image");
 
@@ -1848,44 +1813,6 @@ fn setup_bundle(cid: &str, spec: &mut Spec) -> Result<PathBuf> {
 
     Ok(olddir)
 }
-
-// fn setup_bundle_too(cid: &str, spec: &mut Spec) -> Result<PathBuf> {
-//     if spec.root.is_none() {
-//         return Err(nix::Error::Sys(Errno::EINVAL).into());
-//     }
-//     let spec_root = spec.root.as_ref().unwrap();
-
-//     let bundle_path = Path::new(CONTAINER_BASE_TOO).join(cid);
-//     let config_path = bundle_path.join("config.json");
-//     let rootfs_path = bundle_path.join("rootfs");
-
-//     fs::create_dir_all(&rootfs_path)?;
-//     BareMount::new(
-//         &spec_root.path,
-//         rootfs_path.to_str().unwrap(),
-//         "bind",
-//         MsFlags::MS_BIND,
-//         "",
-//         &sl!(),
-//     )
-//     .mount()?;
-//     spec.root = Some(Root {
-//         path: rootfs_path.to_str().unwrap().to_owned(),
-//         readonly: spec_root.readonly,
-//     });
-
-//     info!(
-//         sl!(),
-//         "{:?}",
-//         spec.process.as_ref().unwrap().console_size.as_ref()
-//     );
-//     let _ = spec.save(config_path.to_str().unwrap());
-
-//     let olddir = unistd::getcwd().context("cannot getcwd")?;
-//     unistd::chdir(bundle_path.to_str().unwrap())?;
-
-//     Ok(olddir)
-// }
 
 fn cleanup_process(p: &mut Process) -> Result<()> {
     if p.parent_stdin.is_some() {
