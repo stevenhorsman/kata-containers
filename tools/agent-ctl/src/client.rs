@@ -880,11 +880,14 @@ fn agent_cmd_container_create(
     let ctx = clone_context(ctx);
 
     let cid = utils::get_option("cid", options, args);
+    info!(sl!(), "cid is {:?}", cid);
     let exec_id = utils::get_option("exec_id", options, args);
+    info!(sl!(), "exec_id is {:?}", exec_id);
 
     // FIXME: container create: add back "spec=file:///" support
 
     let grpc_spec = utils::get_grpc_spec(options, &cid).map_err(|e| anyhow!(e))?;
+    info!(sl!(), "grpc_spec is {:?}", grpc_spec);
 
     req.set_container_id(cid);
     req.set_exec_id(exec_id);

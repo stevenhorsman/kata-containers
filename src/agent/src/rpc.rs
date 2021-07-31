@@ -81,7 +81,7 @@ const MODPROBE_PATH: &str = "/sbin/modprobe";
 const SKOPEO_PATH: &str = "/usr/bin/skopeo";
 const UMOCI_PATH: &str = "/usr/local/bin/umoci";
 const IMAGE_MANIFEST: &str = "/tmp/image_manifest";
-const IMAGE_OCI: &str = "/tmp/image_oci";
+const IMAGE_OCI: &str = "/tmp/image_oci:latest";
 const GPG_HOME: &str = "/tmp/gpg_home";
 
 // Convenience macro to obtain the scope logger
@@ -689,7 +689,7 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         let status = Command::new("mkdir")
             .arg("-v")
             .arg("-p")
-            .arg(&target_path_manifest)
+            .arg(&IMAGE_MANIFEST)
             .status()
             .expect("Cannot create directory");
 
@@ -700,7 +700,7 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         let status = Command::new("mkdir")
             .arg("-v")
             .arg("-p")
-            .arg(target_path_oci)
+            .arg(&IMAGE_OCI)
             .status()
             .expect("Cannot create directory");
 
@@ -743,7 +743,7 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
 
         let image = req.get_container_id();
         let gpg_key = req.get_gpg_key();
-        let target_path_manifest = format!("{}{}", "dir://", IMAGE_MANIFEST);
+        let target_path_manifest = IMAGE_MANIFEST;
         let signature_file = format!("{}{}", target_path_manifest, "/signature-1");
         let manifest_file = format!("{}{}", target_path_manifest, "/manifest.json");
 
@@ -786,11 +786,14 @@ impl protocols::agent_ttrpc::AgentService for AgentService {
         req: protocols::agent::PauseContainerRequest,
     ) -> ttrpc::Result<protocols::empty::Empty> {
 
-        let cid = req.get_container_id();
-        let source_path_oci = format!("{}{}", "oci://", IMAGE_OCI);
-        let target_path_bundle = format!("{}{}{}", "dir://", CONTAINER_BASE, cid);
+        // let cid = req.get_container_id();
+        let cid: &str = "0123456789012345678901234567890123456789";
+        let source_path_oci = IMAGE_OCI;
+        let target_path_bundle = format!("{}{}{}", CONTAINER_BASE, "/", cid);
 
         info!(sl!(), "unpacking image into bundle {:?}", req);
+        info!(sl!(), "cid is {:?}", cid);
+        info!(sl!(), "target_path_bundle is {:?}", target_path_bundle);
 
         // Unpack image
         let status = Command::new(UMOCI_PATH)
@@ -1774,16 +1777,15 @@ fn setup_bundle(cid: &str, spec: &mut Spec) -> Result<PathBuf> {
     let config_path = bundle_path.join("config.json");
     let rootfs_path = bundle_path.join("rootfs");
 
-    fs::create_dir_all(&rootfs_path)?;
-    BareMount::new(
-        &spec_root.path,
-        rootfs_path.to_str().unwrap(),
-        "bind",
-        MsFlags::MS_BIND,
-        "",
-        &sl!(),
-    )
-    .mount()?;
+    let does_bundle_exist = Path::new(&config_path).is_file();
+    info!(sl!(), "Does the bundle exist {:?}", does_bundle_exist);
+    info!(sl!(), "The config_path is {:?}", config_path);
+
+    if !does_bundle_exist {
+        fs::create_dir_all(&rootfs_path)?;
+        BareMount::new(&spec_root.path,rootfs_path.to_str().unwrap(),"bind",MsFlags::MS_BIND,"",&sl!(),).mount()?;
+    }
+
     spec.root = Some(Root {
         path: rootfs_path.to_str().unwrap().to_owned(),
         readonly: spec_root.readonly,
