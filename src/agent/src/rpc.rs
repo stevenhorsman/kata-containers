@@ -172,6 +172,8 @@ impl AgentService {
         // Append guest hooks
         append_guest_hooks(&s, &mut oci);
 
+        info!(sl!(),"EYECATCHER from do_create_container {:?}",oci);
+
         // write spec to bundle path, hooks might
         // read ocispec
         let olddir = setup_bundle(&cid, &mut oci)?;
@@ -1768,6 +1770,7 @@ fn do_add_swap(req: &AddSwapRequest) -> Result<()> {
 // - container rootfs bind mounted at /<CONTAINER_BASE>/<cid>/rootfs
 // - modify container spec root to point to /<CONTAINER_BASE>/<cid>/rootfs
 fn setup_bundle(cid: &str, spec: &mut Spec) -> Result<PathBuf> {
+
     if spec.root.is_none() {
         return Err(nix::Error::Sys(Errno::EINVAL).into());
     }
@@ -1784,19 +1787,13 @@ fn setup_bundle(cid: &str, spec: &mut Spec) -> Result<PathBuf> {
     if !does_bundle_exist {
         fs::create_dir_all(&rootfs_path)?;
         BareMount::new(&spec_root.path,rootfs_path.to_str().unwrap(),"bind",MsFlags::MS_BIND,"",&sl!(),).mount()?;
+        spec.root = Some(Root {path: rootfs_path.to_str().unwrap().to_owned(),readonly: spec_root.readonly,});
+        info!(sl!(),"{:?}",spec.process.as_ref().unwrap().console_size.as_ref());
+        let _ = spec.save(config_path.to_str().unwrap());
+    } else {
+        spec.root = Some(Root {path: rootfs_path.to_str().unwrap().to_owned(),readonly: spec_root.readonly,});
+        info!(sl!(),"{:?}",spec.process.as_ref().unwrap().console_size.as_ref());
     }
-
-    spec.root = Some(Root {
-        path: rootfs_path.to_str().unwrap().to_owned(),
-        readonly: spec_root.readonly,
-    });
-
-    info!(
-        sl!(),
-        "{:?}",
-        spec.process.as_ref().unwrap().console_size.as_ref()
-    );
-    let _ = spec.save(config_path.to_str().unwrap());
 
     let olddir = unistd::getcwd().context("cannot getcwd")?;
     unistd::chdir(bundle_path.to_str().unwrap())?;
