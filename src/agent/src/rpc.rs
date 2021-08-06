@@ -172,8 +172,6 @@ impl AgentService {
         // Append guest hooks
         append_guest_hooks(&s, &mut oci);
 
-        info!(sl!(),"EYECATCHER from do_create_container {:?}",oci);
-
         // write spec to bundle path, hooks might
         // read ocispec
         let olddir = setup_bundle(&cid, &mut oci)?;
