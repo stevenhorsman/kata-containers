@@ -734,6 +734,30 @@ func (s *service) Resume(ctx context.Context, r *taskAPI.ResumeRequest) (_ *ptyp
 	return empty, err
 }
 
+// Pause the container
+func (s *service) PullImage(ctx context.Context, r *taskAPI.PullImageRequest) (_ *ptypes.Empty, err error) {
+	span, spanCtx := trace(s.rootCtx, "PullImage")
+	defer span.End()
+
+	start := time.Now()
+	defer func() {
+		err = toGRPC(err)
+		rpcDurationsHistogram.WithLabelValues("pullimage").Observe(float64(time.Since(start).Nanoseconds() / int64(time.Millisecond)))
+	}()
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	shimLog.WithFields(logrus.Fields{
+		"container-id": r.ID,
+		"image": r.Image,
+	}).Debug("Making image pull request")
+
+	err = s.sandbox.PullImage(spanCtx, r.ID, r.Image)
+
+	return empty, err
+}
+
 // Kill a process with the provided signal
 func (s *service) Kill(ctx context.Context, r *taskAPI.KillRequest) (_ *ptypes.Empty, err error) {
 	span, spanCtx := katatrace.Trace(s.rootCtx, shimLog, "Kill", shimTracingTags)
