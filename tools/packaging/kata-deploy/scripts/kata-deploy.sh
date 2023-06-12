@@ -8,10 +8,32 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
+# TODO - how we get understand if `KATA_BUILD_CC`/equivalent should be set?
+# Whether build for confidential containers or not.
+KATA_BUILD_CC="${KATA_BUILD_CC:-no}"
+if [ "$KATA_BUILD_CC" == "yes" ]; then
+	PREFIX="${PREFIX:-/opt/confidential-containers}"
+fi
+PREFIX="${PREFIX:-/opt/kata}"
+
 crio_drop_in_conf_dir="/etc/crio/crio.conf.d/"
 crio_drop_in_conf_file="${crio_drop_in_conf_dir}/99-kata-deploy"
 containerd_conf_file="/etc/containerd/config.toml"
 containerd_conf_file_backup="${containerd_conf_file}.bak"
+
+# TODO - how we get understand if `KATA_BUILD_CC`/equivalent and what is the write shims for vanilla vs CoCo deploy
+if [ "$KATA_BUILD_CC" == "yes" ]; then
+	shims=(
+        "remote"
+        "qemu"
+        "qemu-tdx"
+        "qemu-sev"
+        # not merged yet"qemu-se"
+        "qemu-snp"
+        "clh"
+        "clh-tdx"
+	)
+fi
 
 shims=(
 	"fc"
@@ -21,7 +43,6 @@ shims=(
 	"qemu-sev"
 	"qemu-snp"
 	"clh"
-	"dragonball"
 )
 
 default_shim="qemu"
@@ -60,10 +81,10 @@ function get_container_runtime() {
 
 function install_artifacts() {
 	echo "copying kata artifacts onto host"
-	cp -au /opt/kata-artifacts/opt/kata/* /opt/kata/
-	chmod +x /opt/kata/bin/*
-	[ -d /opt/kata/runtime-rs/bin ] && \
-		chmod +x /opt/kata/runtime-rs/bin/*
+	cp -au /opt/kata-artifacts/${PREFIX}/* ${PREFIX}/
+	chmod +x ${PREFIX}/bin/*
+	[ -d ${PREFIX}/runtime-rs/bin ] && \
+		chmod +x ${PREFIX}/runtime-rs/bin/*
 }
 
 function wait_till_node_is_ready() {
@@ -109,7 +130,7 @@ function backup_shim() {
 function configure_different_shims_base() {
 	# Currently containerd has an assumption on the location of the shimv2 implementation
 	# This forces kata-deploy to create files in a well-defined location that's part of
-	# the PATH, pointing to the containerd-shim-kata-v2 binary in /opt/kata/bin
+	# the PATH, pointing to the containerd-shim-kata-v2 binary in ${PREFIX}/bin
 	# Issues:
 	#   https://github.com/containerd/containerd/issues/3073
 	#   https://github.com/containerd/containerd/issues/5006
@@ -125,9 +146,9 @@ function configure_different_shims_base() {
 		backup_shim "${shim_file}"
 
 		if [[ "${shim}" == "dragonball" ]]; then
-			ln -sf /opt/kata/runtime-rs/bin/containerd-shim-kata-v2 "${shim_file}"
+			ln -sf ${PREFIX}/runtime-rs/bin/containerd-shim-kata-v2 "${shim_file}"
 		else
-			ln -sf /opt/kata/bin/containerd-shim-kata-v2 "${shim_file}"
+			ln -sf ${PREFIX}/bin/containerd-shim-kata-v2 "${shim_file}"
 		fi
 		chmod +x "$shim_file"
 
@@ -175,7 +196,7 @@ function configure_crio_runtime() {
 
 	local kata_path="/usr/local/bin/containerd-shim-${runtime}-v2"
 	local kata_conf="crio.runtime.runtimes.${runtime}"
-	local kata_config_path="/opt/kata/share/defaults/kata-containers/$configuration.toml"
+	local kata_config_path="${PREFIX}/share/defaults/kata-containers/$configuration.toml"
 
 	cat <<EOF | tee -a "$crio_drop_in_conf_file"
 
@@ -218,8 +239,12 @@ function configure_containerd_runtime() {
 	fi
 	local runtime_table="plugins.${pluginid}.containerd.runtimes.$runtime"
 	local runtime_type="io.containerd.$runtime.v2"
+	local pod_annotations='["io.katacontainers.*"]'
+	if [ "$runtime" == "kata-remote" ]; then
+		pod_annotations='[]'
+	fi
 	local options_table="$runtime_table.options"
-	local config_path="/opt/kata/share/defaults/kata-containers/$configuration.toml"
+	local config_path="${PREFIX}/share/defaults/kata-containers/$configuration.toml"
 	if grep -q "\[$runtime_table\]" $containerd_conf_file; then
 		echo "Configuration exists for $runtime_table, overwriting"
 		sed -i "/\[$runtime_table\]/,+1s#runtime_type.*#runtime_type = \"${runtime_type}\"#" $containerd_conf_file
@@ -228,7 +253,7 @@ function configure_containerd_runtime() {
 [$runtime_table]
   runtime_type = "${runtime_type}"
   privileged_without_host_devices = true
-  pod_annotations = ["io.katacontainers.*"]
+  pod_annotations = ${pod_annotations}
 EOF
 	fi
 
@@ -264,7 +289,7 @@ function configure_containerd() {
 
 function remove_artifacts() {
 	echo "deleting kata artifacts"
-	rm -rf /opt/kata/
+	rm -rf ${PREFIX}/
 }
 
 function cleanup_cri_runtime() {
