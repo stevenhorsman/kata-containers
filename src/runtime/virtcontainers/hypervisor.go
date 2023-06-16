@@ -464,6 +464,9 @@ type HypervisorConfig struct {
 	// The name of the namespace of the sandbox (pod)
 	SandboxNamespace string
 
+	// The uid of the sandbox (pod)
+	SandboxUID string
+
 	// The user maps to the uid.
 	User string
 

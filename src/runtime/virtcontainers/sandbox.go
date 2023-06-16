@@ -637,6 +637,15 @@ func newSandbox(ctx context.Context, sandboxConfig SandboxConfig, factory Factor
 				sandboxConfig.HypervisorConfig.SandboxNamespace = value
 			}
 		}
+
+		// This value is available in containerd >v1.6.11
+		// once we have updated to later verison we can use cri.SandboxUID
+		criSandboxUID := "io.kubernetes.cri.sandbox-uid"
+		for _, a := range []string{criSandboxUID, crio.SandboxID} {
+			if value, ok := sandboxConfig.Containers[0].Annotations[a]; ok {
+				sandboxConfig.HypervisorConfig.SandboxUID = value
+			}
+		}
 	}
 
 	// If we have a confidential guest we need to cold-plug the PCIe VFIO devices

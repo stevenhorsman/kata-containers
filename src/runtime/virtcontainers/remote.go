@@ -74,6 +74,10 @@ func (rh *remoteHypervisor) CreateVM(ctx context.Context, id string, network Net
 	annotations := map[string]string{}
 	annotations[cri.SandboxName] = hypervisorConfig.SandboxName
 	annotations[cri.SandboxNamespace] = hypervisorConfig.SandboxNamespace
+	// This value is available in containerd >v1.6.11
+	// once we have updated to later verison we can use cri.SandboxUID
+	criSandboxUID := "io.kubernetes.cri.sandbox-uid"
+	annotations[criSandboxUID] = hypervisorConfig.SandboxUID
 
 	req := &pb.CreateVMRequest{
 		Id:                   id,
