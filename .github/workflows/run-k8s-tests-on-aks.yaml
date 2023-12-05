@@ -64,4 +64,4 @@ jobs:
 
       - name: Dummy step
         run: |
-          echo "Dummy test"
+          echo "Dummy test won't run required as they are renamed"
