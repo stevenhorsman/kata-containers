@@ -3,6 +3,7 @@ on:
   pull_request_target:
     branches:
       - 'dummy-workflow'
+      - 'dummy-workflow-with-run-name'
       - 'main'
       - 'stable-*'
     types:
