@@ -1,4 +1,5 @@
 name: Kata Containers CI
+run-name: Kata CI on ${{ github.event.inputs.env }}
 on:
   pull_request_target:
     branches:
