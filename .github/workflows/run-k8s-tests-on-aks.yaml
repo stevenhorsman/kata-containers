@@ -57,6 +57,6 @@ jobs:
           ref: ${{ inputs.commit-hash }}
           fetch-depth: 0
 
-      - name: Rebase atop of the latest target branch
+      - name: Dummy step
         run: |
           echo "Dummy test - update"
