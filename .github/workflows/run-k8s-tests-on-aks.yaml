@@ -60,4 +60,4 @@ jobs:
 
       - name: Dummy step
         run: |
-          echo "Dummy test"
+          echo "Dummy test to trigger PR run"
