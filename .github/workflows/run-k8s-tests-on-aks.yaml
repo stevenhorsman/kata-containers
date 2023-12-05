@@ -1,4 +1,5 @@
 name: CI | Run kubernetes tests on AKS
+run-name: CI | Run kubernetes tests on AKS
 on:
   workflow_call:
     inputs:
