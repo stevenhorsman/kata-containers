@@ -59,4 +59,4 @@ jobs:
 
       - name: Dummy step
         run: |
-          echo "Dummy test - update"
+          echo "Dummy test - update - will break as required renamed"
