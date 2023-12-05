@@ -59,4 +59,4 @@ jobs:
 
       - name: Rebase atop of the latest target branch
         run: |
-          echo "Dummy test"
+          echo "Dummy test - update"
