@@ -1,15 +1,45 @@
 name: CI | Run test metrics
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
-      tarball-suffix:
-        required: false
+      registry:
+        required: true
+        type: string
+      repo:
+        required: true
+        type: string
+      tag:
+        required: true
+        type: string
+      pr-number:
+        required: true
         type: string
       commit-hash:
-        required: false
+        required: true
         type: string
       target-branch:
-        required: false
+        required: true
+        type: string
+        default: ""
+  workflow_call:
+    inputs:
+      registry:
+        required: true
+        type: string
+      repo:
+        required: true
+        type: string
+      tag:
+        required: true
+        type: string
+      pr-number:
+        required: true
+        type: string
+      commit-hash:
+        required: true
+        type: string
+      target-branch:
+        required: true
         type: string
         default: ""
 
@@ -31,14 +61,17 @@ jobs:
         env:
           TARGET_BRANCH: ${{ inputs.target-branch }}
 
-      - name: get-kata-tarball
-        uses: actions/download-artifact@v4
-        with:
-          name: kata-static-tarball-amd64${{ inputs.tarball-suffix }}
-          path: kata-artifacts
+      - name: Deploy Kata
+        timeout-minutes: 10
+        run: bash tests/integration/kubernetes/gha-run.sh deploy-kata
+        env:
+          DOCKER_REGISTRY: ${{ inputs.registry }}
+          DOCKER_REPO: ${{ inputs.repo }}
+          DOCKER_TAG: ${{ inputs.tag }}
+          GH_PR_NUMBER: ${{ inputs.pr-number }}
 
-      - name: Install kata
-        run: bash tests/metrics/gha-run.sh install-kata kata-artifacts
+      - name: Install checkmetrics
+        run: bash tests/metrics/gha-run.sh install-checkmetrics
 
   run-metrics:
     needs: setup-kata
@@ -92,3 +125,8 @@ jobs:
           path: results-${{ matrix.vmm }}.tar.gz
           retention-days: 1
           if-no-files-found: error
+
+      - name: Delete kata-deploy
+        if: always()
+        timeout-minutes: 5
+        run: bash tests/integration/kubernetes/gha-run.sh cleanup
