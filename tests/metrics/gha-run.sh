@@ -121,6 +121,7 @@ function run_test_latency() {
 function main() {
 	action="${1:-}"
 	case "${action}" in
+		install-checkmetrics) install_checkmetrics ;;
 		install-kata) install_kata && install_checkmetrics ;;
 		enabling-hypervisor) enabling_hypervisor ;;
 		make-tarball-results) make_tarball_results ;;

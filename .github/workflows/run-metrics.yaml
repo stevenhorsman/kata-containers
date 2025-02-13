@@ -1,5 +1,6 @@
 name: CI | Run test metrics
 on:
+  workflow_dispatch:
   workflow_call:
     inputs:
       tarball-suffix:
@@ -37,8 +38,12 @@ jobs:
           name: kata-static-tarball-amd64${{ inputs.tarball-suffix }}
           path: kata-artifacts
 
-      - name: Install kata
-        run: bash tests/metrics/gha-run.sh install-kata kata-artifacts
+      - name: Deploy Kata
+        timeout-minutes: 10
+        run: bash tests/integration/kubernetes/gha-run.sh deploy-kata
+
+      - name: Install checkmetrics
+        run: bash tests/metrics/gha-run.sh install-checkmetrics
 
   run-metrics:
     needs: setup-kata
