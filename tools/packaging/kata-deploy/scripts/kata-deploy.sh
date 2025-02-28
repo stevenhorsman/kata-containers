@@ -166,8 +166,8 @@ function get_container_runtime() {
 		else
 			echo "k3s"
 		fi
-	# Note: we assumed you used a conventional k0s setup and k0s will generate a systemd entry k0scontroller.service and k0sworker.service respectively    
-	# and it is impossible to run this script without a kubelet, so this k0s controller must also have worker mode enabled 
+	# Note: we assumed you used a conventional k0s setup and k0s will generate a systemd entry k0scontroller.service and k0sworker.service respectively
+	# and it is impossible to run this script without a kubelet, so this k0s controller must also have worker mode enabled
 	elif host_systemctl is-active --quiet k0scontroller; then
 		echo "k0s-controller"
 	elif host_systemctl is-active --quiet k0sworker; then
@@ -330,7 +330,7 @@ function adjust_qemu_cmdline() {
 	# Both qemu and qemu-coco-dev use exactly the same QEMU, so we can adjust
 	# the shim on the qemu-coco-dev case to qemu
 	[[ "${shim}" =~ ^(qemu|qemu-coco-dev)$ ]] && qemu_share="qemu"
-		
+
 	qemu_binary=$(tomlq '.hypervisor.qemu.path' ${config_path} | tr -d \")
 	qemu_binary_script="${qemu_binary}-installation-prefix"
 	qemu_binary_script_host_path="/host/${qemu_binary_script}"
@@ -421,7 +421,7 @@ function install_artifacts() {
 				*)
 					tdx_not_supported ${ID} ${VERSION_ID}
 					;;
-			esac	
+			esac
 		fi
 
 		if [ "${dest_dir}" != "${default_dest_dir}" ]; then
@@ -595,19 +595,19 @@ function configure_containerd_runtime() {
 	local runtime_type=\"io.containerd."${runtime}".v2\"
 	local runtime_config_path=\"$(get_kata_containers_config_path "${shim}")/${configuration}.toml\"
 	local runtime_path=\"$(get_kata_containers_runtime_path "${shim}")\"
-	
+
 	tomlq -i -t $(printf '%s.runtime_type=%s' ${runtime_table} ${runtime_type}) ${configuration_file}
 	tomlq -i -t $(printf '%s.runtime_path=%s' ${runtime_table} ${runtime_path}) ${configuration_file}
 	tomlq -i -t $(printf '%s.privileged_without_host_devices=true' ${runtime_table}) ${configuration_file}
 	tomlq -i -t $(printf '%s.pod_annotations=["io.katacontainers.*"]' ${runtime_table}) ${configuration_file}
 	tomlq -i -t $(printf '%s.ConfigPath=%s' ${runtime_options_table} ${runtime_config_path}) ${configuration_file}
-	
+
 	if [ "${DEBUG}" == "true" ]; then
 		tomlq -i -t '.debug.level = "debug"' ${configuration_file}
 	fi
 
 	if [ -n "${SNAPSHOTTER_HANDLER_MAPPING}" ]; then
-		for m in ${snapshotters[@]}; do
+		for m in "${snapshotters[@]}"; do
 			key="${m%$snapshotters_delimiter*}"
 
 			if [ "${key}" != "${shim}" ]; then
@@ -733,7 +733,7 @@ function snapshotter_handler_mapping_validation_check() {
 		return
 	fi
 
-	for m in ${snapshotters[@]}; do
+	for m in "${snapshotters[@]}"; do
 		shim="${m%$snapshotters_delimiter*}"
 		snapshotter="${m#*$snapshotters_delimiter}"
 
@@ -797,7 +797,7 @@ function main() {
 		containerd_conf_tmpl_file="${containerd_conf_file}.tmpl"
 		containerd_conf_file_backup="${containerd_conf_tmpl_file}.bak"
 	elif [[ "$runtime" =~ ^(k0s-worker|k0s-controller)$ ]]; then
-		# From 1.27.1 onwards k0s enables dynamic configuration on containerd CRI runtimes. 
+		# From 1.27.1 onwards k0s enables dynamic configuration on containerd CRI runtimes.
 		# This works by k0s creating a special directory in /etc/k0s/containerd.d/ where user can drop-in partial containerd configuration snippets.
 		# k0s will automatically pick up these files and adds these in containerd configuration imports list.
 		containerd_conf_file="/etc/containerd/containerd.d/kata-containers.toml"
