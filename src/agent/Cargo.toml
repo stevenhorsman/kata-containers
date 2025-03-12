@@ -75,7 +75,7 @@ vsock-exporter = { path = "vsock-exporter" }
 serde = { version = "1.0.129", features = ["derive"] }
 toml = "0.5.8"
 clap = { version = "3.0.1", features = ["derive"] }
-strum = "0.26.2"
+strum = "0.27.1"
 strum_macros = "0.26.2"
 
 # Image pull/decrypt
