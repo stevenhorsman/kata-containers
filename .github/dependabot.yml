@@ -1,0 +1,23 @@
+---
+version: 2
+updates:
+  - package-ecosystem: "cargo"
+    directories:
+      - "/src/agent"
+      - "/src/dragonball" # Note: sub-crates in the workspace are erroring, so don't include them
+      - "/src/libs"
+      - "/src/mem-agent"
+      - "/src/runtime-rs"
+      - "/src/runtime-rs/creates/hypervisor"
+      - "/src/tools/agent-ctl"
+      - "/src/tools/genpolicy"
+      - "/src/tools/kata-ctl"
+      - "/src/tools/runk"
+      - "/src/tools/trace-forwarder"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "gomod"
+    directories:
+      - "/src/runtime"
+    schedule:
+      interval: "weekly"
