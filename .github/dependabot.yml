@@ -4,7 +4,10 @@ updates:
   - package-ecosystem: "cargo"
     directories:
       - "/src/agent"
-      - "/src/dragonball" # Note: sub-crates in the workspace are erroring, so don't include them
+      - "/src/dragonball"
+      - "/src/dragonball/dbs_utils/"
+      - "/src/dragonball/dbs_virtio_devices"
+      - "/src/dragonball/dbs_pci"
       - "/src/libs"
       - "/src/mem-agent"
       - "/src/runtime-rs"
