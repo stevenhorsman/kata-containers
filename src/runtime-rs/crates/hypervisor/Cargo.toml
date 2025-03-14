@@ -83,7 +83,7 @@ hypervisor = { path = ".", features = ["cloud-hypervisor"] }
 
 test-utils = { path = "../../../libs/test-utils" }
 
-serial_test = "2.0.0"
+serial_test = "3.2.0"
 
 
 [build-dependencies]
