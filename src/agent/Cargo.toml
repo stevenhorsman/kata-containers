@@ -90,7 +90,7 @@ tempfile = "3.1.0"
 test-utils = { path = "../libs/test-utils" }
 which = "4.3.0"
 rstest = "0.18.0"
-async-std = { version = "1.12.0", features = ["attributes"] }
+async-std = { version = "1.13.1", features = ["attributes"] }
 
 [workspace]
 members = ["rustjail", "policy"]
