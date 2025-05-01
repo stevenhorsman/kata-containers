@@ -32,6 +32,9 @@ updates:
       tokio:
         patterns:
           - tokio
+      tracing:
+        patterns:
+          - tracing
   - package-ecosystem: "gomod"
     directories:
       - "/src/runtime"
