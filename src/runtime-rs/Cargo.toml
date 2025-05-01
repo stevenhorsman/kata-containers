@@ -56,7 +56,7 @@ hyper = "0.14.20"
 hyperlocal = "0.8.0"
 lazy_static = "1.4"
 libc = "0.2"
-log = "0.4.14"
+log = "0.4.27"
 netns-rs = "0.1.0"
 nix = "0.24.2"
 oci-spec = { version = "0.6.8", features = ["runtime"] }
