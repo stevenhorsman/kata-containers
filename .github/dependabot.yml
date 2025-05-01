@@ -28,6 +28,10 @@ updates:
       - dependency-name: "virtio-vsock"
       - dependency-name: "vm-memory"
       - dependency-name: "vmm-sys-util"
+    groups:
+      tokio:
+        patterns:
+          - tokio
   - package-ecosystem: "gomod"
     directories:
       - "/src/runtime"
