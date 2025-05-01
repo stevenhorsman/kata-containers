@@ -17,7 +17,6 @@ updates:
       - "/src/tools/trace-forwarder"
     schedule:
       interval: "daily"
-    open-pull-requests-limit: 3
     ignore:
     # rust-vmm repos might cause incompatibilities on patch versions, so
     # lets handle them manually for now.
