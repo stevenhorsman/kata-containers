@@ -308,7 +308,7 @@ jobs:
           - qemu
           - dragonball
           - cloud-hypervisor
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       KATA_HYPERVISOR: ${{ matrix.vmm }}
     steps:
