@@ -23,7 +23,7 @@ nix  = { workspace = true }
 protobuf = { workspace = true }
 sha2 = "=0.9.3"
 slog = {workspace = true, features = ["std", "release_max_level_trace", "max_level_trace"]}
-slog-async = "2.5.2"
+slog-async = "2.8.0"
 slog-scope = { workspace = true }
 slog-stdlog = "4.1.0"
 thiserror = { workspace = true }
