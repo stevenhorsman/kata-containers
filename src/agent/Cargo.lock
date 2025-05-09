@@ -3072,7 +3072,7 @@ dependencies = [
  "mem-agent",
  "netlink-packet-core",
  "netlink-packet-route",
- "netlink-sys 0.7.0",
+ "netlink-sys",
  "nix 0.24.3",
  "oci-spec 0.6.8",
  "opentelemetry",
@@ -3395,7 +3395,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc2f4eb4bc735547cfed7c0a4922cbd04a4655978c09b54f1f7b228750664c34"
 dependencies = [
  "cfg-if",
- "windows-targets 0.52.6",
+ "windows-targets 0.48.5",
 ]
 
 [[package]]
@@ -3726,20 +3726,8 @@ dependencies = [
  "futures",
  "log",
  "netlink-packet-core",
- "netlink-sys 0.8.7",
+ "netlink-sys",
  "thiserror 2.0.12",
-]
-
-[[package]]
-name = "netlink-sys"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f48ea34ea0678719815c3753155067212f853ad2d8ef4a49167bae7f7c254188"
-dependencies = [
- "futures",
- "libc",
- "log",
- "tokio",
 ]
 
 [[package]]
@@ -5362,7 +5350,7 @@ dependencies = [
  "netlink-packet-route",
  "netlink-packet-utils",
  "netlink-proto",
- "netlink-sys 0.8.7",
+ "netlink-sys",
  "nix 0.27.1",
  "thiserror 1.0.69",
  "tokio",
