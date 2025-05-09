@@ -7,7 +7,7 @@ go 1.23.0
 // https://github.com/kata-containers/kata-containers/issues/11020
 
 require (
-	code.cloudfoundry.org/bytefmt v0.0.0-20211005130812-5bb3c17173e5
+	code.cloudfoundry.org/bytefmt v0.40.0
 	github.com/BurntSushi/toml v1.3.2
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/blang/semver/v4 v4.0.0
@@ -56,7 +56,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.21.0
 	go.opentelemetry.io/otel/trace v1.21.0
 	golang.org/x/oauth2 v0.14.0
-	golang.org/x/sys v0.31.0
+	golang.org/x/sys v0.33.0
 	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.35.2
 	k8s.io/apimachinery v0.27.4
@@ -95,7 +95,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
+	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/uuid v1.4.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
@@ -126,9 +126,9 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.45.0 // indirect
 	go.opentelemetry.io/otel/metric v1.21.0 // indirect
 	golang.org/x/mod v0.17.0 // indirect
-	golang.org/x/net v0.38.0 // indirect
-	golang.org/x/sync v0.12.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/net v0.40.0 // indirect
+	golang.org/x/sync v0.14.0 // indirect
+	golang.org/x/text v0.25.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20231211222908-989df2bf70f3 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240401170217-c3f982113cda // indirect
