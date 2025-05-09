@@ -380,16 +380,6 @@ checksum = "a3e2c3daef883ecc1b5d58c15adae93470a91d425f3532ba1695849656af3fc1"
 
 [[package]]
 name = "byte-unit"
-version = "4.0.19"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "da78b32057b8fdfc352504708feeba7216dcd65a2c9ab02978cbd288d1279b6c"
-dependencies = [
- "serde",
- "utf8-width",
-]
-
-[[package]]
-name = "byte-unit"
 version = "5.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bc40af92e0f7f964b7ab1ebc81315cce78fc484802d534143321c956f58d7be3"
@@ -1915,7 +1905,7 @@ dependencies = [
  "anyhow",
  "base64 0.13.1",
  "bitmask-enum",
- "byte-unit 5.0.3",
+ "byte-unit",
  "glob",
  "lazy_static",
  "num_cpus",
@@ -3473,7 +3463,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "bitflags 2.9.0",
- "byte-unit 4.0.19",
+ "byte-unit",
  "cgroups-rs",
  "futures 0.3.28",
  "hypervisor",
