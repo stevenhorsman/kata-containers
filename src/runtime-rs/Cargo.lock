@@ -1722,7 +1722,7 @@ dependencies = [
  "protobuf 3.7.1",
  "protocols",
  "qapi",
- "qapi-qmp",
+ "qapi-qmp 0.14.0",
  "qapi-spec",
  "rand 0.8.5",
  "rust-ini",
@@ -2969,7 +2969,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "059a34f111a9dee2ce1ac2826a68b24601c4298cfeb1a587c3cb493d5ab46f52"
 dependencies = [
  "libc",
- "nix 0.27.1",
+ "nix 0.29.0",
 ]
 
 [[package]]
@@ -3208,15 +3208,15 @@ dependencies = [
 
 [[package]]
 name = "qapi"
-version = "0.14.0"
+version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c6412bdd014ebee03ddbbe79ac03a0b622cce4d80ba45254f6357c847f06fa38"
+checksum = "7b047adab56acc4948d4b9b58693c1f33fd13efef2d6bb5f0f66a47436ceada8"
 dependencies = [
  "bytes",
  "futures 0.3.28",
  "log",
  "memchr",
- "qapi-qmp",
+ "qapi-qmp 0.15.0",
  "qapi-spec",
  "serde",
  "serde_json",
@@ -3248,6 +3248,17 @@ name = "qapi-qmp"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e8b944db7e544d2fa97595e9a000a6ba5c62c426fa185e7e00aabe4b5640b538"
+dependencies = [
+ "qapi-codegen",
+ "qapi-spec",
+ "serde",
+]
+
+[[package]]
+name = "qapi-qmp"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "45303cac879d89361cad0287ae15f9ae1e7799b904b474152414aeece39b9875"
 dependencies = [
  "qapi-codegen",
  "qapi-spec",
