@@ -14,7 +14,7 @@ slog-scope = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread"] }
 tracing = { workspace = true }
 tracing-opentelemetry = { workspace = true }
-opentelemetry = { version = "0.18.0", features = [
+opentelemetry = { version = "0.20.0", features = [
     "rt-tokio-current-thread",
     "trace",
     "rt-tokio",
