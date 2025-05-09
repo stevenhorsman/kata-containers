@@ -20,7 +20,7 @@ thiserror = "1.0.35"
 privdrop = "0.5.2"
 nix = "0.25.0"
 strum = "0.24.1"
-strum_macros = "0.24.3"
+strum_macros = "0.26.4"
 serde = { version = "1.0.149", features = ["derive"] }
 url = "2.3.1"
 futures = "0.3.24"
