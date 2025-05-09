@@ -49,7 +49,7 @@ ttrpc = "0.8.4"
 
 prometheus = { version = "0.13.0", features = ["process"] }
 procfs = "0.12.0"
-lazy_static = "1.2"
+lazy_static = "1.5"
 
 # for log-parser
 serde_yaml = "0.9"
