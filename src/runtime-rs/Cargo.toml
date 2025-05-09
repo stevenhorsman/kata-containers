@@ -48,7 +48,7 @@ dbs-utils = { path = "../dragonball/dbs_utils" }
 
 actix-rt = "2.7.0"
 anyhow = "1.0"
-async-trait = "0.1.48"
+async-trait = "0.1.88"
 containerd-shim = { version = "0.6.0", features = ["async"] }
 containerd-shim-protos = { version = "0.6.0", features = ["async"] }
 go-flag = "0.1.0"
