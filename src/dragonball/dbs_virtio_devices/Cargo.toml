@@ -11,7 +11,7 @@ keywords = ["dragonball", "secure-sandbox", "devices", "virtio"]
 readme = "README.md"
 
 [dependencies]
-byteorder = "1.4.3"
+byteorder = "1.5.0"
 caps = "0.5.3"
 dbs-device = { workspace = true }
 dbs-interrupt = { workspace = true, features = [
