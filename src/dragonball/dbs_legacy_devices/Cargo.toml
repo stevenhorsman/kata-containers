@@ -15,7 +15,7 @@ dbs-device = { workspace = true }
 dbs-utils = { workspace = true }
 libc = "0.2.39"
 log = "0.4.14"
-serde = { version = "1.0.27", features = ["derive", "rc"] }
+serde = { version = "1.0.193", features = ["derive", "rc"] }
 vm-superio = {workspace = true}
 vmm-sys-util = {workspace = true}
 
