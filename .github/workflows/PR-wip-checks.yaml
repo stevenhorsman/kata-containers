@@ -21,6 +21,11 @@ jobs:
     runs-on: ubuntu-22.04
     name: WIP Check
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+      with:
+        egress-policy: audit
+
     - name: WIP Check
       if: ${{ !contains(github.event.pull_request.labels.*.name, 'force-skip-ci') }}
       uses: tim-actions/wip-check@1c2a1ca6c110026b3e2297bb2ef39e1747b5a755 # master (2021-06-10)
