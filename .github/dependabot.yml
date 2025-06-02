@@ -1,0 +1,281 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+
+  - package-ecosystem: cargo
+    directory: /src/agent
+    schedule:
+      interval: daily
+
+  - package-ecosystem: cargo
+    directory: /src/dragonball
+    schedule:
+      interval: daily
+
+  - package-ecosystem: cargo
+    directory: /src/libs
+    schedule:
+      interval: daily
+
+  - package-ecosystem: cargo
+    directory: /src/mem-agent
+    schedule:
+      interval: daily
+
+  - package-ecosystem: cargo
+    directory: /src/mem-agent/example
+    schedule:
+      interval: daily
+
+  - package-ecosystem: cargo
+    directory: /src/runtime-rs
+    schedule:
+      interval: daily
+
+  - package-ecosystem: gomod
+    directory: /src/runtime
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /src/runtime/vendor/github.com/blang/semver
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /src/runtime/vendor/go.opentelemetry.io/otel
+    schedule:
+      interval: daily
+
+  - package-ecosystem: cargo
+    directory: /src/tools/agent-ctl
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /src/tools/csi-kata-directvolume
+    schedule:
+      interval: daily
+
+  - package-ecosystem: gomod
+    directory: /src/tools/csi-kata-directvolume
+    schedule:
+      interval: daily
+
+  - package-ecosystem: cargo
+    directory: /src/tools/genpolicy
+    schedule:
+      interval: daily
+
+  - package-ecosystem: cargo
+    directory: /src/tools/kata-ctl
+    schedule:
+      interval: daily
+
+  - package-ecosystem: gomod
+    directory: /src/tools/log-parser
+    schedule:
+      interval: daily
+
+  - package-ecosystem: cargo
+    directory: /src/tools/runk
+    schedule:
+      interval: daily
+
+  - package-ecosystem: cargo
+    directory: /src/tools/trace-forwarder
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tests/functional/vfio-ap
+    schedule:
+      interval: daily
+
+  - package-ecosystem: gomod
+    directory: /tests
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tests/integration/kubernetes/runtimeclass_workloads/confidential/unencrypted
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tests/integration/kubernetes/runtimeclass_workloads/stress
+    schedule:
+      interval: daily
+
+  - package-ecosystem: gomod
+    directory: /tests/metrics/cmd/checkmetrics
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tests/metrics/cpu/c-ray
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tests/metrics/density/sysbench-dockerfile
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tests/metrics/machine_learning/mobilenet_v1_bfloat16_fp32_dockerfile
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tests/metrics/machine_learning/onednn-dockerfile
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tests/metrics/machine_learning/openvino-dockerfile
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tests/metrics/machine_learning/pytorch_dockerfile
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tests/metrics/machine_learning/resnet50_fp32_dockerfile
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tests/metrics/machine_learning/resnet50_int8_dockerfile
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tests/metrics/machine_learning/tensorflow_nhwc_dockerfile
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tests/metrics/storage/blogbench_dockerfile
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tests/metrics/storage/fio-dockerfile
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tests/stability/stressng_dockerfile
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tools/osbuilder/dockerfiles/QAT
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tools/osbuilder/image-builder
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tools/packaging/kata-debug
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tools/packaging/kata-deploy
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tools/packaging/kata-deploy/action
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tools/packaging/kata-deploy/local-build/dockerbuild
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tools/packaging/kata-monitor
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tools/packaging/static-build/agent
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tools/packaging/static-build/busybox
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tools/packaging/static-build/coco-guest-components
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tools/packaging/static-build/initramfs
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tools/packaging/static-build/kernel
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tools/packaging/static-build/ovmf
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tools/packaging/static-build/pause-image
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tools/packaging/static-build/qemu
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tools/packaging/static-build/shim-v2
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tools/packaging/static-build/tools
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tools/packaging/static-build/virtiofsd/gnu
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tools/packaging/static-build/virtiofsd/musl
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /tools/testing/kata-webhook
+    schedule:
+      interval: daily
+
+  - package-ecosystem: gomod
+    directory: /tools/testing/kata-webhook
+    schedule:
+      interval: daily

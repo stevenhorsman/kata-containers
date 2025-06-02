@@ -18,6 +18,11 @@ jobs:
           - cc-vfio-ap-e2e-tests
           - cc-se-e2e-tests
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+      with:
+        egress-policy: audit
+
     - name: Fetch a test result for {{ matrix.test_title }}
       run: |
         file_name="${TEST_TITLE}-$(date +%Y-%m-%d).log"
