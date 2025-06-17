@@ -48,7 +48,7 @@ slog-term = "2.9.0"
 slog-stdlog = "4.0.0"
 log = "0.4.11"
 
-cfg-if = "1.0.0"
+cfg-if = "1.0.1"
 prometheus = { version = "0.13.0", features = ["process"] }
 procfs = "0.12.0"
 
