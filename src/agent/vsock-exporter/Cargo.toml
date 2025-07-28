@@ -8,7 +8,7 @@ license.workspace = true
 [dependencies]
 libc.workspace = true
 thiserror.workspace = true
-opentelemetry = { workspace = true, features = ["serialize"] }
+opentelemetry = { workspace = true }
 tokio-vsock.workspace = true
 bincode = "1.3.3"
 byteorder = "1.4.3"
