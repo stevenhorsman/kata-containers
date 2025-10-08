@@ -1,7 +1,7 @@
 module github.com/kata-containers/kata-containers/src/runtime
 
 // Keep in sync with version in versions.yaml
-go 1.23.0
+go 1.24.0
 
 // WARNING: Do NOT use `replace` directives as those break dependabot:
 // https://github.com/kata-containers/kata-containers/issues/11020
@@ -56,7 +56,7 @@ require (
 	go.opentelemetry.io/otel/exporters/jaeger v1.0.0
 	go.opentelemetry.io/otel/sdk v1.23.1
 	go.opentelemetry.io/otel/trace v1.23.1
-	golang.org/x/oauth2 v0.27.0
+	golang.org/x/oauth2 v0.32.0
 	golang.org/x/sys v0.31.0
 	google.golang.org/grpc v1.62.0
 	google.golang.org/protobuf v1.35.2
