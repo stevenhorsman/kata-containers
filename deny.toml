@@ -35,6 +35,12 @@ private = { ignore = true }
 
 exceptions = []
 
+[[licenses.clarify]]
+name = "unicode-ident"
+version = "*"
+expression = "(MIT OR Apache-2.0) AND Unicode-DFS-2016"
+license-files = [{ path = "LICENSE-UNICODE", hash = 0x3fb01745 }]
+
 [sources]
 unknown-registry = "allow"
 unknown-git = "allow"
