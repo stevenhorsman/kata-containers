@@ -26,6 +26,11 @@ linters:
       - third_party$
       - builtin$
       - examples$
+  settings:
+    staticcheck:
+      checks:
+        - all
+        - "-T1005" # T1005: error strings should not be capitalized (staticcheck)
 formatters:
   enable:
     - gofmt
