@@ -33,3 +33,4 @@ jobs:
         with:
           severity: error
           ignore_paths: "**/vendor/**"
+          check_together: 'yes' # to help resolve SC1090/SC1091 errors
