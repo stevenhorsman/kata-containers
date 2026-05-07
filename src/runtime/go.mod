@@ -24,7 +24,7 @@ require (
 	github.com/coreos/go-systemd/v22 v22.6.0
 	github.com/cri-o/cri-o v1.34.0
 	github.com/docker/go-units v0.5.0
-	github.com/fsnotify/fsnotify v1.9.0
+	github.com/fsnotify/fsnotify v1.10.0
 	github.com/go-ini/ini v1.67.0
 	github.com/go-openapi/errors v0.22.1
 	github.com/go-openapi/runtime v0.28.0
