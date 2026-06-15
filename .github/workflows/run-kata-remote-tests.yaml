@@ -1,0 +1,72 @@
+name: CI | Run kata-remote-libvirt tests
+
+on:
+  workflow_call:
+    inputs:
+      tarball-suffix:
+        required: false
+        type: string
+      commit-hash:
+        required: false
+        type: string
+      target-branch:
+        required: false
+        type: string
+        default: ""
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-kata-remote-tests
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  run-kata-remote-libvirt-tests:
+    name: run-kata-remote-libvirt-tests
+    runs-on: ubuntu-24.04
+    env:
+      KATA_HYPERVISOR: remote
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ inputs.commit-hash }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Rebase atop of the latest target branch
+        run: |
+          ./tests/git-helper.sh "rebase-atop-of-the-latest-target-branch"
+        env:
+          TARGET_BRANCH: ${{ inputs.target-branch }}
+
+      - name: Install dependencies
+        timeout-minutes: 15
+        run: bash tests/integration/kata-remote-libvirt/gha-run.sh install-dependencies
+
+      - name: get-kata-tarball
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: kata-static-tarball-amd64${{ inputs.tarball-suffix }}
+          path: kata-artifacts
+
+      - name: Install kata
+        run: bash tests/integration/kata-remote-libvirt/gha-run.sh install-kata kata-artifacts
+
+      - name: Build kata-remote-libvirt binary
+        timeout-minutes: 10
+        run: bash tests/integration/kata-remote-libvirt/gha-run.sh build-binary
+
+      - name: Create base image
+        timeout-minutes: 5
+        run: bash tests/integration/kata-remote-libvirt/gha-run.sh create-base-image
+
+      - name: Configure kata runtime
+        run: bash tests/integration/kata-remote-libvirt/gha-run.sh configure-runtime
+
+      - name: Run tests
+        timeout-minutes: 10
+        run: bash tests/integration/kata-remote-libvirt/gha-run.sh run
+
+      - name: Cleanup
+        if: always()
+        run: bash tests/integration/kata-remote-libvirt/gha-run.sh cleanup

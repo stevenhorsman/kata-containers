@@ -23,6 +23,12 @@ This tool provides a simple way to test the kata-remote hypervisor functionality
   - Add a base image volume (default: `kata-base.qcow2`)
   - The image should have kata-agent installed and configured
 
+## CI/Testing
+
+Integration tests for this hypervisor are located in `tests/integration/kata-remote-libvirt/`. The tests run automatically in CI via the `.github/workflows/run-kata-remote-tests.yaml` workflow.
+
+See `tests/integration/kata-remote-libvirt/README.md` for details on running tests locally.
+
 ## Building
 
 ```bash
