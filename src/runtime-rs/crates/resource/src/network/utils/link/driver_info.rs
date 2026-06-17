@@ -4,7 +4,10 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-use std::{io, mem};
+use std::{
+    io, mem,
+    os::fd::{AsFd, AsRawFd},
+};
 
 use anyhow::{Context, Result};
 use nix::sys::socket::{socket, AddressFamily, SockFlag, SockType};
@@ -93,9 +96,9 @@ pub fn get_driver_info(name: &str) -> Result<DriverInfo> {
     )
     .context("new socket")?;
     defer!({
-        let _ = nix::unistd::close(fd);
+        let _ = nix::unistd::close(fd.as_fd().as_raw_fd());
     });
-    unsafe { ioctl_ethtool(fd, &mut req).context("ioctl ethtool")? };
+    unsafe { ioctl_ethtool(fd.as_fd().as_raw_fd(), &mut req).context("ioctl ethtool")? };
     Ok(DriverInfo {
         driver: get_name!(ereq.driver).context("get driver name")?,
         bus_info: get_name!(ereq.bus_info).context("get bus info name")?,
