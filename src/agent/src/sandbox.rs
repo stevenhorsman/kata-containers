@@ -518,7 +518,7 @@ impl Sandbox {
                     if let Some(src_init_pid) = src_ctrs.get(m.src_ctr()) {
                         // Shared mount points are created by application process within the source container,
                         // so we need to ensure they are already prepared.
-                        let borrowed_fd = unsafe { BorrowedFd::borrow_raw(init_mntns.as_raw_fd()) };
+                        let borrowed_fd = unsafe { BorrowedFd::borrow_raw(init_mntns) };
                         setns(borrowed_fd, CloneFlags::CLONE_NEWNS).map_err(|e| {
                             anyhow!("switch to initial mount namespace failed: {}", e)
                         })?;
@@ -564,9 +564,7 @@ impl Sandbox {
                         // safe because the fd are opened by fcntl::open and used directly.
                         let _src_mntns_f =
                             unsafe { fs::File::from_raw_fd(src_mntns.into_raw_fd()) };
-                        let borrowed_fd =
-                            unsafe { BorrowedFd::borrow_raw(_src_mntns_f.as_raw_fd()) };
-                        setns(borrowed_fd, CloneFlags::CLONE_NEWNS).map_err(|e| {
+                        setns(&_src_mntns_f, CloneFlags::CLONE_NEWNS).map_err(|e| {
                             anyhow!("switch to source mount namespace failed: {}", e)
                         })?;
                         let src = std::ffi::CString::new(m.src_path())?;
@@ -588,7 +586,7 @@ impl Sandbox {
                         let _mount_f = unsafe { fs::File::from_raw_fd(mount_fd) };
 
                         // Switch to the dst container and mount them.
-                        let borrowed_fd = unsafe { BorrowedFd::borrow_raw(dst_mntns.as_raw_fd()) };
+                        let borrowed_fd = unsafe { BorrowedFd::borrow_raw(dst_mntns) };
                         setns(borrowed_fd, CloneFlags::CLONE_NEWNS).map_err(|e| {
                             anyhow!("switch to destination mount namespace failed: {}", e)
                         })?;

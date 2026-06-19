@@ -2895,7 +2895,7 @@ mod tests {
 
             let (rfd, wfd) = unistd::pipe().unwrap();
             let rfd = if d.break_pipe {
-                unistd::close(rfd).unwrap();
+                drop(rfd);  // OwnedFd closes automatically on drop
                 None
             } else {
                 Some(rfd)
@@ -2956,9 +2956,7 @@ mod tests {
                 })
                 .await;
 
-            if let Some(rfd) = rfd {
-                unistd::close(rfd).unwrap();
-            }
+            drop(rfd);
             // XXX: Do not close wfd.
             // the fd will be closed on Process's dropping.
             // unistd::close(wfd).unwrap();

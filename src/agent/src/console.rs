@@ -215,13 +215,10 @@ async fn run_debug_console_vsock<T: AsyncRead + AsyncWrite>(
     let logger = logger.new(o!("subsystem" => "debug-console-shell"));
 
     let pseudo = openpty(None, None)?;
-    let master_fd = pseudo.master.as_fd().as_raw_fd();
     let slave_fd = pseudo.slave.as_fd().as_raw_fd();
 
-    let borrowed_master = unsafe { BorrowedFd::borrow_raw(master_fd) };
-    let borrowed_slave = unsafe { BorrowedFd::borrow_raw(slave_fd) };
-    let _ = fcntl::fcntl(borrowed_master, FcntlArg::F_SETFD(FdFlag::FD_CLOEXEC));
-    let _ = fcntl::fcntl(borrowed_slave, FcntlArg::F_SETFD(FdFlag::FD_CLOEXEC));
+    let _ = fcntl::fcntl(pseudo.master.as_fd(), FcntlArg::F_SETFD(FdFlag::FD_CLOEXEC));
+    let _ = fcntl::fcntl(pseudo.slave.as_fd(), FcntlArg::F_SETFD(FdFlag::FD_CLOEXEC));
 
     match unsafe { fork() } {
         Ok(ForkResult::Child) => run_in_child(slave_fd, shell),

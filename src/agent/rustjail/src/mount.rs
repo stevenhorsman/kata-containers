@@ -20,7 +20,7 @@ use std::fs::{self, OpenOptions};
 use std::mem::MaybeUninit;
 use std::os::unix;
 use std::os::unix::fs::PermissionsExt;
-use std::os::unix::io::{AsRawFd, RawFd};
+use std::os::unix::io::RawFd;
 use std::path::{Component, Path, PathBuf};
 
 use path_absolutize::*;
@@ -522,11 +522,8 @@ fn pivot_root<P1: ?Sized + NixPath, P2: ?Sized + NixPath>(
 
 pub fn pivot_rootfs<P: ?Sized + NixPath + std::fmt::Debug>(path: &P) -> Result<()> {
     let oldroot = fcntl::open("/", OFlag::O_DIRECTORY | OFlag::O_RDONLY, Mode::empty())?;
-    let oldroot_raw = oldroot.as_raw_fd();
-    defer!(unistd::close(oldroot_raw).unwrap());
     let newroot = fcntl::open(path, OFlag::O_DIRECTORY | OFlag::O_RDONLY, Mode::empty())?;
-    let newroot_raw = newroot.as_raw_fd();
-    defer!(unistd::close(newroot_raw).unwrap());
+    // OwnedFd will close automatically when they go out of scope
 
     // Change to the new root so that the pivot_root actually acts on it.
     unistd::fchdir(&newroot)?;

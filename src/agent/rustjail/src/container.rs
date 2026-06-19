@@ -362,11 +362,9 @@ fn do_init_child(cwfd: RawFd) -> Result<()> {
         // by unshare from the parent pidns.
         match std::env::var(PIDNS_FD) {
             Ok(fd) => {
-                let pidns_fd = fd.parse::<i32>().context("get parent pidns fd")?;
-                let borrowed_fd = unsafe { BorrowedFd::borrow_raw(pidns_fd) };
-                sched::setns(borrowed_fd, CloneFlags::CLONE_NEWPID)
-                    .context("failed to join pidns")?;
-                let _ = unistd::close(pidns_fd);
+                let pidns_fd = unsafe { OwnedFd::from_raw_fd(fd.parse::<i32>().context("get parent pidns fd")?) };
+                sched::setns(&pidns_fd, CloneFlags::CLONE_NEWPID).context("failed to join pidns")?;
+                // close is automatic on drop
             }
             Err(_e) => {
                 sched::unshare(CloneFlags::CLONE_NEWPID)?;
@@ -531,8 +529,7 @@ fn do_init_child(cwfd: RawFd) -> Result<()> {
         }
 
         log_child!(cfd_log, "join namespace {:?}", s);
-        let borrowed_fd = unsafe { BorrowedFd::borrow_raw(fd.as_raw_fd()) };
-        sched::setns(borrowed_fd, s).or_else(|e| {
+        sched::setns(&fd, s).or_else(|e| {
             if s == CloneFlags::CLONE_NEWUSER {
                 if e != Errno::EINVAL {
                     let _ = write_sync(cwfd, SYNC_FAILED, format!("{e:?}").as_str());
@@ -604,8 +601,7 @@ fn do_init_child(cwfd: RawFd) -> Result<()> {
     }
 
     if let Some(mount_fd) = mount_fd {
-        let borrowed_fd = unsafe { BorrowedFd::borrow_raw(mount_fd.as_raw_fd()) };
-        sched::setns(borrowed_fd, CloneFlags::CLONE_NEWNS)?;
+        sched::setns(&mount_fd, CloneFlags::CLONE_NEWNS)?;
         // mount_fd will be automatically closed when dropped
     }
 
@@ -1033,13 +1029,15 @@ impl BaseContainer for LinuxContainer {
 
             let slave_raw = pseudo.slave.into_raw_fd();
             child_stdin = unsafe { std::process::Stdio::from_raw_fd(slave_raw) };
-            let borrowed_slave = unsafe { BorrowedFd::borrow_raw(slave_raw) };
+            // Create temporary OwnedFd for dup operations, then forget it since stdin owns the fd
+            let slave_fd = unsafe { OwnedFd::from_raw_fd(slave_raw) };
             child_stdout = unsafe {
-                std::process::Stdio::from_raw_fd(unistd::dup(borrowed_slave)?.into_raw_fd())
+                std::process::Stdio::from_raw_fd(unistd::dup(&slave_fd)?.into_raw_fd())
             };
             child_stderr = unsafe {
-                std::process::Stdio::from_raw_fd(unistd::dup(borrowed_slave)?.into_raw_fd())
+                std::process::Stdio::from_raw_fd(unistd::dup(&slave_fd)?.into_raw_fd())
             };
+            std::mem::forget(slave_fd);  // Don't close - stdin owns it
 
             if let Some(proc_io) = &mut p.proc_io {
                 // A reference count used to clean up the term master fd.
@@ -1337,8 +1335,7 @@ impl BaseContainer for LinuxContainer {
         let fifo = format!("{}/{}", &self.root, EXEC_FIFO_FILENAME);
         let fd = fcntl::open(fifo.as_str(), OFlag::O_WRONLY, Mode::from_bits_truncate(0))?;
         let data: &[u8] = &[0];
-        let borrowed_fd = unsafe { BorrowedFd::borrow_raw(fd.as_raw_fd()) };
-        unistd::write(borrowed_fd, data)?;
+        unistd::write(&fd, data)?;
         info!(self.logger, "container started");
         self.init_process_start_time = SystemTime::now()
             .duration_since(SystemTime::UNIX_EPOCH)
@@ -1640,8 +1637,7 @@ fn write_mappings(logger: &Logger, path: &str, maps: &[LinuxIdMapping]) -> Resul
     if !data.is_empty() {
         let fd = fcntl::open(path, OFlag::O_WRONLY, Mode::empty())?;
         // OwnedFd will be automatically closed when dropped
-        let borrowed_fd = unsafe { BorrowedFd::borrow_raw(fd.as_raw_fd()) };
-        unistd::write(borrowed_fd, data.as_bytes())
+        unistd::write(&fd, data.as_bytes())
             .inspect_err(|_| info!(logger, "cannot write mapping"))?;
     }
     Ok(())

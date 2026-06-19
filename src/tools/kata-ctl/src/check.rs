@@ -11,7 +11,6 @@ use crate::types::KernelModule;
 use anyhow::{anyhow, Result};
 use nix::fcntl::{open, OFlag};
 use nix::sys::stat::Mode;
-use nix::unistd::close;
 use nix::{ioctl_write_int_bad, request_code_none};
 use reqwest::header::{CONTENT_TYPE, USER_AGENT};
 use serde::{Deserialize, Serialize};
@@ -155,7 +154,7 @@ pub fn check_kvm_is_usable_generic() -> Result<()> {
         Err(error) => return Err(anyhow!("Other KVM_CREATE_VM error: {:?}", error)),
     };
 
-    let _ = close(fd);
+    // fd will be automatically closed when it goes out of scope (OwnedFd RAII)
 
     Ok(())
 }

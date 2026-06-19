@@ -158,6 +158,7 @@ async fn register_memory_event(
 
     let event_control_path = Path::new(&cg_dir).join("cgroup.event_control");
 
+    // Get raw fd and prevent eventfd from closing it when it drops
     let eventfd_raw = eventfd.as_fd().as_raw_fd();
     let data = if arg.is_empty() {
         format!("{} {}", eventfd_raw, event_file.as_raw_fd())
@@ -167,7 +168,9 @@ async fn register_memory_event(
 
     fs::write(&event_control_path, data)?;
 
+    // Transfer ownership to PipeStream and prevent eventfd from closing the fd
     let mut eventfd_stream = unsafe { PipeStream::from_raw_fd(eventfd_raw) };
+    std::mem::forget(eventfd);
 
     let (sender, receiver) = tokio::sync::mpsc::channel(100);
     let containere_id = cid.to_string();

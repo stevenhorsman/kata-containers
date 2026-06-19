@@ -11,7 +11,6 @@ use std::{
 
 use anyhow::{Context, Result};
 use nix::sys::socket::{socket, AddressFamily, SockFlag, SockType};
-use scopeguard::defer;
 
 use super::macros::{get_name, set_name};
 
@@ -95,9 +94,7 @@ pub fn get_driver_info(name: &str) -> Result<DriverInfo> {
         None,
     )
     .context("new socket")?;
-    defer!({
-        let _ = nix::unistd::close(fd.as_fd().as_raw_fd());
-    });
+    // fd will be automatically closed when it goes out of scope (OwnedFd RAII)
     unsafe { ioctl_ethtool(fd.as_fd().as_raw_fd(), &mut req).context("ioctl ethtool")? };
     Ok(DriverInfo {
         driver: get_name!(ereq.driver).context("get driver name")?,
